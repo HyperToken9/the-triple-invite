@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>An Invitation — Thanksgiving Mass &amp; Dinner</title>
+
+<!-- ---- what WhatsApp shows in the bubble ------------------------------
+     The link preview is the envelope: the same paper, the same cream and
+     rosewood, so the message and the page are one object.
+
+     THESE TWO URLS MUST BE ABSOLUTE AND MUST MATCH THE LIVE DOMAIN.
+     WhatsApp fetches the preview from its own servers, so a relative path
+     resolves to nothing and the bubble falls back to a bare link. If the
+     site ends up on a different domain than the one below, change both
+     lines -- it is the only place in the project that hard-codes a URL. -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://the-triple-invite.vercel.app/">
+<meta property="og:title" content="You are invited — Thanksgiving Mass &amp; Dinner">
+<meta property="og:description"
+      content="Michael's 80th · Savio's 50th · Orwill &amp; Jovita's Silver. Saturday 29 November, Don Bosco Shrine.">
+<meta property="og:image" content="https://the-triple-invite.vercel.app/assets/preview.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#fff7e6">
+
+<link rel="stylesheet" href="system.css?v=22">
+<style>
+  /* page layout only -- the components all come from system.css */
+
+  /* Mandatory: you land on a section or you are still moving, never parked
+     between two. A section taller than the window relaxes this on its own --
+     the spec drops snapping for a snap area larger than the scrollport, so
+     an oversized page can still be scrolled through. */
+  html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+  /* THE RAIL'S OWN STRIP. Reserved once, on the body, rather than as a
+     right padding on each section -- that way the full-bleed ones (the
+     cover card, the three panels) end before the rail too, instead of
+     running underneath it. Nothing is ever written under the guide. */
+  /* Two widths, not a clamp: the strip has to clear the widest LABEL, and
+     "Orwill & Jovita" does not shrink with the window. Above 1024 the strip
+     is wide enough to hold the words; below it the words go and the strip
+     narrows to what the ticks need. */
+  :root { --rail: 46px; }
+  @media (min-width: 1024px) { :root { --rail: 152px; } }
+  @media (max-width: 1023px) { .rail .lbl { display: none; } }
+
+  /* ---- the rail --------------------------------------------------------
+     The old top bar linked the three demo pages, which is scaffolding, not
+     navigation for a guest. This is a guide to the invitation itself: one
+     tick per section down the right edge, the current one lit. */
+  .rail {
+    position: fixed; z-index: 60;
+    right: clamp(10px, 1.6vw, 28px); top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column;
+    font-family: var(--micro);
+  }
+  .rail a {
+    display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+    padding: 6px 0; text-decoration: none; color: var(--bone);
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    opacity: 0.38;
+    transition: opacity 0.25s ease, color 0.25s ease;
+  }
+  .rail .tick {
+    width: 15px; height: 1px; background: currentColor;
+    transition: width 0.25s ease, height 0.25s ease;
+  }
+  .rail a:hover, .rail a:focus-visible { opacity: 0.8; }
+  .rail a[aria-current] { opacity: 1; color: var(--neon); }
+  .rail a[aria-current] .tick { width: 30px; height: 2px; }
+  /* the invitation is the front of the card; a guide down its edge is the
+     one place the furniture gets in the way of the thing itself */
+  .rail { transition: opacity 0.35s ease; }
+  html[data-at="invitation"] .rail { opacity: 0; pointer-events: none; }
+
+  /* ---- THE ENVELOPE ------------------------------------------------------
+     A real envelope, not a line drawing: back view, flap closed, the four
+     panels folded to a point at 70% height, lit from above. Every edge is a
+     crease -- a soft dark line with a lighter one riding above it -- rather
+     than an outline, which is what makes paper look like paper.
+
+     It sits ABOVE the page's grain overlay on purpose. The opening happens
+     on clean stock; the texture arrives with the page, as the gate lifts.
+
+     The card comes out BLANK. It grows until it is exactly the hero card,
+     borders and all, and only then does the page write itself in. Nothing
+     has to be morphed or cross-faded, because nothing moves at the handover. */
+  html.gate-on, html.gate-on body { overflow: hidden; }
+  html.gate-on .rail { opacity: 0; pointer-events: none; }
+
+  .gate {
+    position: fixed; inset: 0; z-index: 9500;
+    background: var(--shell);
+    cursor: pointer;
+    transition: opacity 0.42s ease;
+  }
+  .gate[hidden] { display: none; }
+  .gate.gone { opacity: 0; pointer-events: none; }
+
+  /* Back, front and flap are SIBLINGS of the card, never its ancestors: an
+     ancestor carrying a transform becomes the containing block for the fixed
+     card, and the expand-to-the-hero maths would then be measured off the
+     wrong box. All three share one geometry so they stay registered. */
+  .env-part {
+    position: absolute; left: 50%; top: 50%;
+    width: min(66vw, 58vh, 545px); aspect-ratio: 190 / 140;
+    transform: translate(-50%, -50%) scale(0.955);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.55s ease, transform 0.9s cubic-bezier(.16,1,.3,1);
+  }
+  .env-part > svg, .flap-hinge > svg { width: 100%; height: 100%; display: block; }
+  .env-back { z-index: 1; }
+  .env-front { z-index: 3; }
+  .env-flap { z-index: 4; }
+  .flap-hinge {
+    position: absolute; inset: 0;
+    transform-origin: 50% 0;
+    transform: perspective(1500px) rotateX(0deg);
+    transition: transform 1s cubic-bezier(.36,.02,.18,1);
+  }
+  /* the envelope's own weight on the table */
+  .env-back::before {
+    content: ''; position: absolute; inset: 2% 3% 0;
+    border-radius: 3px;
+    box-shadow: 0 30px 46px -26px rgba(78,58,40,0.40),
+                0 5px 16px -6px rgba(78,58,40,0.16);
+  }
+
+  /* the card: cream, the hero's own keyline, and nothing written on it */
+  .gate-card {
+    position: fixed; z-index: 2; overflow: hidden;
+    background: var(--shell);
+    border: 3px solid var(--neon);
+    opacity: 0;
+    transition: top 0.85s cubic-bezier(.16,1,.3,1),
+                left 0.85s cubic-bezier(.16,1,.3,1),
+                width 0.85s cubic-bezier(.16,1,.3,1),
+                height 0.85s cubic-bezier(.16,1,.3,1),
+                box-shadow 0.7s ease;
+  }
+
+  /* ---- the sequence ---- */
+  .gate[data-phase="in"]      .env-part,
+  .gate[data-phase="opening"] .env-part,
+  .gate[data-phase="rising"]  .env-part {
+    opacity: 1; transform: translate(-50%, -50%) scale(1);
+  }
+  .gate[data-phase="opening"] .gate-card,
+  .gate[data-phase="rising"]  .gate-card,
+  .gate[data-phase="out"]     .gate-card { opacity: 1; }
+
+  .gate[data-phase="opening"] .flap-hinge,
+  .gate[data-phase="rising"]  .flap-hinge,
+  .gate[data-phase="out"]     .flap-hinge {
+    transform: perspective(1500px) rotateX(-168deg);
+  }
+  /* once it is past edge-on the flap is furniture behind the card */
+  .gate[data-phase="rising"] .env-flap,
+  .gate[data-phase="out"]    .env-flap { z-index: 1; }
+
+  .gate[data-phase="rising"] .gate-card {
+    box-shadow: 0 34px 60px -26px rgba(78,58,40,0.42),
+                0 6px 18px -8px rgba(78,58,40,0.18);
+  }
+  .gate[data-phase="out"] .gate-card {
+    box-shadow: 0 18px 60px -40px rgba(78,58,40,0.20);
+  }
+  .gate[data-phase="out"] .env-part {
+    opacity: 0; transform: translate(-50%, -47%) scale(0.99);
+  }
+
+  /* ---- and then the page writes itself in -------------------------------
+     Added by the script only, so a reader without JS, or one who asked for
+     reduced motion, gets the page whole and immediately. */
+  html.gate-hold .cover .invite .eyebrow,
+  html.gate-hold .cover .invite .w1,
+  html.gate-hold .cover .invite .w2,
+  html.gate-hold .cover .particulars,
+  html.gate-hold .cover-art { opacity: 0; transform: translateY(18px); }
+
+  html.gate-pop .cover .invite .eyebrow,
+  html.gate-pop .cover .invite .w1,
+  html.gate-pop .cover .invite .w2,
+  html.gate-pop .cover .particulars,
+  html.gate-pop .cover-art {
+    opacity: 1; transform: none;
+    transition: opacity 0.8s ease, transform 0.9s cubic-bezier(.16,1,.3,1);
+  }
+  html.gate-pop .cover-art          { transition-delay: 0.14s; }
+  html.gate-pop .cover .invite .w1  { transition-delay: 0.10s; }
+  html.gate-pop .cover .invite .w2  { transition-delay: 0.20s; }
+  html.gate-pop .cover .particulars { transition-delay: 0.34s; }
+
+  @media (max-width: 860px) {
+    .env-part { width: min(80vw, 50vh, 430px); }
+    html.gate-pop .cover-art { opacity: 0.5; }
+  }
+
+  /* ---- one section, one screen ----------------------------------------
+     Each block fills the viewport under the sticky nav. svh rather than vh
+     so a phone's collapsing address bar does not cut the last line off. */
+  .screen {
+    min-height: 100svh;
+    scroll-snap-align: start;
+    display: flex; flex-direction: column; justify-content: center;
+    max-width: 1120px; margin: 0 auto;
+    padding: clamp(24px, 4.2vh, 46px) calc(28px + var(--rail))
+             clamp(28px, 4.6vh, 52px) 28px;
+  }
+  @supports not (height: 100svh) {
+    .screen { min-height: 100vh; }
+  }
+
+  /* ---- a page that is complete in itself ---------------------------------
+     Every section fills the window now, so none of them may be a short list
+     floating in a void. Each is built the same way: the head at the top, the
+     substance centred in whatever is left, and a closing line on the floor.
+     The space is used rather than merely left. */
+  .screen--sheet { justify-content: flex-start; }
+
+  /* ---- the centred masthead -------------------------------------------
+     The head was a baseline row: number, title and date on one line with the
+     title floated between them. Three stacked lines, centred, reads as a
+     title page instead of a table header. */
+  .mast { text-align: center; margin: 0 0 clamp(18px, 5vh, 62px); }
+  .mast .n {
+    display: block; font-family: var(--display); font-weight: 500;
+    font-size: clamp(19px, min(3.4vw, 4.4vh), 52px);
+    line-height: 1; opacity: 0.35; margin: 0;
+  }
+  .mast .t {
+    display: block; font-family: var(--display); font-weight: 500;
+    font-size: clamp(25px, min(7vw, 8.4vh), 96px);
+    line-height: 1.02; letter-spacing: -0.03em;
+    text-transform: uppercase; margin: clamp(6px, 1vh, 14px) 0 0;
+  }
+  .mast .d {
+    display: block; font-family: var(--micro); font-weight: 700;
+    font-size: clamp(11px, min(1.4vw, 1.8vh), 17px);
+    letter-spacing: 0.26em; text-transform: uppercase;
+    margin: clamp(10px, 1.6vh, 20px) 0 0; color: var(--neon);
+  }
+
+  /* ---- the day: two events, each one block ------------------------------
+     Time, event and place belong together and the two events do not, so each
+     is one centred stack with a full-height rule standing between them. */
+  .events {
+    display: grid; grid-template-columns: 1fr 1px 1fr;
+    align-items: center; gap: clamp(20px, 4vw, 64px);
+  }
+  .events .split { background: var(--hair); align-self: stretch; }
+  .event { text-align: center; }
+  .event .when {
+    display: block; font-family: var(--micro); font-weight: 700;
+    font-size: clamp(11px, min(1.4vw, 1.8vh), 17px);
+    letter-spacing: 0.26em; text-transform: uppercase; opacity: 0.55;
+  }
+  .event .what {
+    display: block; font-family: var(--display); font-weight: 500;
+    font-size: clamp(22px, min(5.4vw, 7vh), 74px);
+    line-height: 1.02; letter-spacing: -0.026em; text-transform: uppercase;
+    margin: clamp(8px, 1.4vh, 18px) 0;
+  }
+  .event .where {
+    display: block; font-family: var(--micro); font-weight: 500;
+    font-size: clamp(11px, min(1.3vw, 1.7vh), 16px);
+    letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.62;
+  }
+
+  /* ---- the reply: the instruction IS the page --------------------------- */
+  .reply-line {
+    font-family: var(--display); font-weight: 500; margin: 0;
+    font-size: clamp(24px, min(6.2vw, 8vh), 88px);
+    line-height: 1.04; letter-spacing: -0.028em; text-transform: uppercase;
+    text-align: center;
+  }
+  .reply-line .by {
+    display: block; text-transform: none; font-style: italic;
+    font-weight: 400; opacity: 0.55;
+    font-size: clamp(18px, min(2.6vw, 3.4vh), 34px);
+    letter-spacing: 0.01em; margin-top: clamp(10px, 1.6vh, 22px);
+  }
+  .sheet-body {
+    flex: 1; display: flex; flex-direction: column; justify-content: center;
+    padding: clamp(10px, 2.6vh, 48px) 0;
+  }
+  /* one closing line where there is genuinely something to say, and nothing
+     where there is not -- the balancing tags on the other two sheets were
+     filler holding up a layout, not information */
+  .sheet-note {
+    margin: auto 0 0; padding-top: clamp(14px, 2vh, 22px);
+    border-top: 1px solid var(--hair);
+  }
+
+  /* ---- the cover ---------------------------------------------------------
+     Two columns, edge to edge: the copy reads down the left, the flutes run
+     the full height of the right. No inset card and no centred stack -- the
+     mark is the field, not a picture hung on it. */
+  .screen.cover-screen {
+    max-width: none; margin: 0;
+    /* the margin the keyline floats in. Left as plain shell: with a rule
+       this strong, a second tonal step outside it is one event too many. */
+    /* even on all four sides. The rail hides itself over the hero (see the
+       script), so there is nothing here to make room for. */
+    padding: clamp(13px, 1.7vw, 26px);
+  }
+  .cover {
+    flex: 1; position: relative;
+    background: var(--shell); color: var(--bone);
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+    align-items: center;
+    /* the card clips: the flutes run into this rule and stop dead at it,
+       which is what makes the border look drawn rather than dropped on top */
+    border: 3px solid var(--neon);
+    overflow: hidden;
+  }
+
+  /* ---- the card --------------------------------------------------------
+     The flourishes and the grey rule are gone. What holds the cover now is
+     a keyline in the full-strength ink -- no grey, nothing soft -- and the
+     card CLIPS: the flutes run to the rule and stop dead at it, which is
+     what makes the border look drawn rather than dropped on top. */
+  /* the copy column is its own container, so every size below is a fraction
+     of the text measure itself rather than of the window */
+  .cover-copy {
+    container-type: inline-size;
+    position: relative; z-index: 2;
+    /* ONE spacing scale for the whole hero. Gaps inside a group use s1/s2,
+       gaps between groups use s3/s4 -- which is what makes the four blocks
+       read as four blocks instead of seven loose lines. */
+    --s1: clamp(5px, 0.7cqw, 9px);
+    --s2: clamp(11px, 1.5cqw, 19px);
+    --s3: clamp(24px, 3.2cqw, 42px);
+    --s4: clamp(34px, 4.8cqw, 62px);
+    padding: clamp(44px, 7vw, 96px) clamp(30px, 4vw, 58px)
+             clamp(44px, 7vw, 96px) clamp(40px, 6.5vw, 110px);
+    display: flex; flex-direction: column; align-items: flex-start;
+  }
+
+  /* 1 + 2. the invitation. No connectives, set in caps, a wall of type --
+     the words break across lines because that IS the composition. */
+  .cover .eyebrow {
+    font-family: var(--micro); font-weight: 700;
+    font-size: clamp(12px, 2.1cqw, 22px);
+    letter-spacing: 0.26em; text-transform: uppercase;
+    color: var(--neon);
+    /* its own figure rather than --s4: the scale bottoms out at 34px, which
+       is not much of a gap under 76px slab caps. This one keeps growing. */
+    margin: 0 0 clamp(30px, 7cqw, 88px);
+  }
+  .cover .invite .w1, .cover .invite .w2 {
+    display: block; margin: 0;
+    font-family: var(--display); font-weight: 500;
+    text-transform: uppercase;
+    /* "THANKSGIVING" measures 7.4x its font size in caps, so anything over
+       ~13.5cqw runs past the measure and the card clips the word in half.
+       13 leaves it a little air. */
+    font-size: clamp(40px, 13cqw, 132px);
+    /* 0.85 packed THANKSGIVING and MASS into each other. Slab caps have no
+       descenders to speak of, so they need the leading opened deliberately
+       rather than left to the font. */
+    line-height: 1.02; letter-spacing: -0.035em;
+  }
+  /* The ampersand is a joint, not a word, so it is set lighter than what it
+     joins. Bodoni Moda's weight axis bottoms out at 400, so the rest of the
+     reduction comes from the optical-size axis: opsz 72 is the display cut,
+     whose hairlines are drawn to almost vanish -- the same thinness that had
+     to be pinned away from the running text is exactly what this wants. */
+  .cover .invite .w2::before {
+    content: '& ';
+    font-weight: 400;
+    font-variation-settings: 'opsz' 72;
+  }
+
+  /* 3. the particulars. The date is the one fact people act on, so it is
+     set at display size on its own row; the two places are the same kind of
+     fact as each other and share the row beneath it. */
+  .cover .particulars {
+    display: flex; flex-direction: column; gap: var(--s3);
+    margin: var(--s4) 0 0; padding: var(--s3) 0 0;
+    border-top: 1px solid var(--hair);
+    align-self: stretch;
+  }
+  .cover .particulars dt {
+    font-family: var(--micro); font-weight: 500;
+    font-size: clamp(10px, 1.3cqw, 13px);
+    letter-spacing: 0.22em; text-transform: uppercase;
+    opacity: 0.55; margin: 0 0 var(--s1);
+  }
+  .cover .particulars dd {
+    font-family: var(--display); font-weight: 500; margin: 0;
+    line-height: 1.2; letter-spacing: -0.012em;
+  }
+  .cover .when dd { font-size: clamp(30px, 5.6cqw, 62px); }
+  .cover .places {
+    display: grid; gap: var(--s2) clamp(26px, 4cqw, 56px);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  }
+  .cover .places dd { font-size: clamp(18px, 2.8cqw, 32px); }
+
+  /* the paper grain is multiplied over the type too, so a hairline highlight
+     under each stroke is what makes the display words sit IN the sheet
+     rather than printed on top of it */
+  .cover .headline { text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5); }
+
+  /* the invitation assembles itself, top line first */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @keyframes ink { from { opacity: 0; } to { opacity: 1; } }
+  .cover-copy > * { animation: rise 0.85s cubic-bezier(0.2, 0.75, 0.2, 1) backwards; }
+  .cover-copy > :nth-child(1) { animation-delay: 0.10s; }
+  .cover-copy > :nth-child(2) { animation-delay: 0.34s; }
+  .cover-art   { animation: ink 2.2s ease 0.25s backwards; }
+  @media (prefers-reduced-motion: reduce) {
+    .cover-copy > *, .cover-art { animation: none; }
+  }
+
+  /* end to end: the canvas is the whole right column, top edge to bottom */
+  .cover-art { position: relative; z-index: 1; align-self: stretch; }
+  .cover-art .wire { opacity: 0.8; }
+
+  /* ---- the three, one screen each ----------------------------------------
+     No section head and no caption above the card: each person IS the screen,
+     edge to edge, and the milestone is stated at display size inside it so
+     nobody has to read a corner label to learn what is being celebrated. */
+  .screen.solo { max-width: none; margin: 0; padding: 0; }
+  /* the corner labels are gone, so the panel holds one block instead of two
+     -- it sits on the floor of the panel with the mark rising behind it,
+     rather than floating at the top where space-between used to leave it */
+  .solo .panel {
+    aspect-ratio: auto; flex: 1; justify-content: flex-end;
+    /* the field runs to the edge of the window -- no cream strip beside it.
+       Only the ink is held back, so the rail has bare pastel to sit on. */
+    padding-right: calc(7% + var(--rail));
+  }
+  /* 27cqw is tuned for a portrait panel a third of the page wide. On a panel
+     this wide it would be ~290px, so the solo panels take their own figure;
+     long names wrap rather than shrinking the size away from the others. */
+
+  /* ---- the people, as one treatment ------------------------------------
+     Name in caps at poster size, then the occasion carried on a solid bar of
+     the panel's own ink, reversed out of it. The bar exists to hold the
+     occasion at display size: set at label size inside it, the bar was the
+     loud thing and the reason for the page was the quiet one. */
+  .person-body { width: 100%; }
+  .person .name {
+    text-transform: uppercase; line-height: 0.86; margin: 0;
+    font-size: clamp(30px, min(17cqw, 20vh), 180px);
+  }
+  .person .punch {
+    font-family: var(--display); font-style: italic; margin: 0;
+    font-size: clamp(17px, min(2.1cqw, 2.6vh), 30px);
+    line-height: 1.35; letter-spacing: 0.01em;
+    margin-top: clamp(12px, 2vh, 24px);
+  }
+  .person .footrow {
+    /* Out to the panel's left and right edges, but NOT to its floor. Sitting
+       on the bottom edge the bar ran into the rail's ticks and the two read
+       as one piece of furniture; the panel's own bottom padding now holds it
+       clear. Everything else stays where it was. */
+    margin: clamp(18px, 3vh, 36px) -7% 0;
+    padding: clamp(16px, 2.6vh, 34px) 7%;
+    background: currentColor;
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .person .footrow > * { color: var(--field); }
+  .person .milestone {
+    font-family: var(--display); font-weight: 500;
+    font-size: clamp(19px, min(5cqw, 4.6vh), 56px);
+    line-height: 1; letter-spacing: -0.012em;
+  }
+  .person .year {
+    font-family: var(--micro); font-weight: 500;
+    font-size: clamp(10px, min(1.5cqw, 1.9vh), 18px);
+    letter-spacing: 0.18em; text-transform: uppercase;
+  }
+  .person .roles { display: none; }
+
+  @media (max-width: 860px) {
+    /* THE PHONE. Two changes of kind, not of degree: the rail lies down
+       along the bottom so nothing has to be held off the right edge, and
+       everything centres -- which is only honest once the side gutters are
+       symmetrical again. */
+    :root { --rail: 0px; }
+    .rail {
+      top: auto; bottom: 0; left: 0; right: 0; transform: none;
+      flex-direction: row; justify-content: center; align-items: center;
+      gap: clamp(12px, 3.4vw, 22px);
+      padding: 14px 16px calc(14px + env(safe-area-inset-bottom, 0px));
+    }
+    .rail a { padding: 0; }
+    .rail .tick { width: 13px; }
+    .rail a[aria-current] .tick { width: 24px; height: 2px; }
+
+    .screen {
+      padding: 30px 18px calc(56px + env(safe-area-inset-bottom, 0px));
+      text-align: center;
+    }
+
+    /* the flutes stop being a band under the copy and become the field the
+       copy is printed on */
+    .cover { grid-template-columns: 1fr; align-items: center; }
+    .cover-art {
+      position: absolute; inset: 0; min-height: 0; z-index: 0; opacity: 0.5;
+    }
+    .cover-copy {
+      align-items: center; text-align: center; z-index: 2;
+      padding: clamp(30px, 6vh, 54px) 20px;
+    }
+    .cover .invite .w1, .cover .invite .w2 {
+      font-size: clamp(28px, min(13cqw, 13vh), 78px);
+    }
+    /* below roughly 300px the slab word is wider than the screen no matter
+       how small it is set; breaking it is ugly but it beats the whole page
+       scrolling sideways */
+    .cover-copy > *, .cover .invite > * { max-width: 100%; min-width: 0; }
+    .cover .invite .w1, .cover .invite .w2 { overflow-wrap: break-word; }
+    .cover .invite .eyebrow { margin-bottom: clamp(16px, min(4.6cqw, 4vh), 44px); }
+    .cover .particulars { text-align: center; }
+    .cover .places { justify-items: center; }
+
+    .solo .panel { padding: 8% 7%; align-items: center; text-align: center; }
+    .person-body { text-align: center; }
+    .person .footrow { justify-content: center; gap: 8px 18px; }
+
+    .events { grid-template-columns: 1fr; gap: clamp(26px, 5vh, 48px); }
+    .events .split { height: 1px; align-self: auto; }
+    .data > div { grid-template-columns: 1fr; gap: 6px; justify-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================ THE ENVELOPE
+     Four folds meeting at a point 70% down: flap on top, left and right
+     panels beneath it, bottom panel folded up over them. Each fold is a
+     SEPARATE CUT of one sheet of stock (assets/env-paper.jpg) -- rotated
+     and offset so no two panels show the same fibre -- then lit for the
+     way that fold actually sits. That is what the creases are made of:
+     two panels whose grain and light disagree, not a drawn line. -->
+<div class="gate" id="gate" data-phase="sealed" hidden aria-hidden="true">
+
+  <!-- the lining, seen through the mouth once the flap is back -->
+  <div class="env-part env-back">
+    <svg viewBox="0 0 190 140" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <clipPath id="cRect"><rect x="0" y="0" width="190" height="140" rx="1.4"/></clipPath>
+        <linearGradient id="gLining" x1="0" y1="0" x2="0.15" y2="1">
+          <stop offset="0" stop-color="rgba(74,56,36,0.26)"/>
+          <stop offset="0.8" stop-color="rgba(74,56,36,0.05)"/>
+        </linearGradient>
+        <filter id="eSoft" x="-20%" y="-40%" width="140%" height="180%">
+          <feGaussianBlur stdDeviation="0.9"/>
+        </filter>
+      </defs>
+      <g clip-path="url(#cRect)">
+        <image href="assets/env-paper.jpg?v=2" x="-95" y="-60" width="380" height="260"
+               preserveAspectRatio="none" transform="translate(20 15)"/>
+        <rect x="0" y="0" width="190" height="140" fill="url(#gLining)"/>
+      </g>
+      <!-- what the open mouth casts on the lining, and the creases the
+           flap has been hiding -->
+      <path d="M0 0 L88.85 94.68 Q95 101.23 101.15 94.68 L190 0" transform="translate(0 2.2)"
+            fill="none" stroke="rgba(92,72,48,0.30)" stroke-width="1.3" filter="url(#eSoft)"/>
+      <path d="M0 0 L95 98 L190 0" fill="none" stroke="rgba(120,96,70,0.20)" stroke-width="0.4"/>
+    </svg>
+  </div>
+
+  <!-- blank. It becomes the hero card, and the page writes itself in after. -->
+  <div class="gate-card" id="gateCard"></div>
+
+  <!-- the three fixed folds: left and right panels, bottom panel over them -->
+  <div class="env-part env-front">
+    <svg viewBox="0 0 190 140" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <clipPath id="cLeft"><path d="M0 0 L95 98 L0 140 Z"/></clipPath>
+        <clipPath id="cRight"><path d="M190 0 L95 98 L190 140 Z"/></clipPath>
+        <clipPath id="cBottom"><path d="M0 140 L88.67 98 Q95 95 101.33 98 L190 140 Z"/></clipPath>
+        <!-- light from the top left: the left fold catches it, the right
+             fold turns away from it, the bottom fold sits proudest -->
+        <linearGradient id="gLeft" x1="0" y1="0.1" x2="1" y2="0.6">
+          <stop offset="0" stop-color="rgba(255,255,255,0.30)"/>
+          <stop offset="1" stop-color="rgba(74,56,36,0.09)"/>
+        </linearGradient>
+        <linearGradient id="gRight" x1="1" y1="0.1" x2="0" y2="0.6">
+          <stop offset="0" stop-color="rgba(74,56,36,0.05)"/>
+          <stop offset="1" stop-color="rgba(74,56,36,0.15)"/>
+        </linearGradient>
+        <linearGradient id="gBottom" x1="0.2" y1="1" x2="0.5" y2="0">
+          <stop offset="0" stop-color="rgba(255,255,255,0.26)"/>
+          <stop offset="1" stop-color="rgba(74,56,36,0.05)"/>
+        </linearGradient>
+        <filter id="fSoft" x="-20%" y="-60%" width="140%" height="220%">
+          <feGaussianBlur stdDeviation="0.75"/>
+        </filter>
+      </defs>
+
+      <g clip-path="url(#cLeft)">
+        <image href="assets/env-paper.jpg?v=2" x="-95" y="-60" width="380" height="260"
+               preserveAspectRatio="none" transform="rotate(90 95 70) translate(-18 22)"/>
+        <rect x="-2" y="-2" width="194" height="144" fill="url(#gLeft)"/>
+      </g>
+      <g clip-path="url(#cRight)">
+        <image href="assets/env-paper.jpg?v=2" x="-95" y="-60" width="380" height="260"
+               preserveAspectRatio="none" transform="rotate(-90 95 70) translate(24 -16)"/>
+        <rect x="-2" y="-2" width="194" height="144" fill="url(#gRight)"/>
+      </g>
+
+      <!-- the bottom fold lies ON the side folds, so it throws a line first -->
+      <path d="M0 140 L88.67 98 Q95 95 101.33 98 L190 140" transform="translate(0 -1.4)" fill="none" stroke="rgba(92,72,48,0.34)"
+            stroke-width="1.5" filter="url(#fSoft)"/>
+      <g clip-path="url(#cBottom)">
+        <image href="assets/env-paper.jpg?v=2" x="-95" y="-60" width="380" height="260"
+               preserveAspectRatio="none" transform="rotate(180 95 70) translate(-22 -18)"/>
+        <rect x="-2" y="-2" width="194" height="144" fill="url(#gBottom)"/>
+      </g>
+      <path d="M0 140 L88.67 98 Q95 95 101.33 98 L190 140" fill="none" stroke="rgba(255,252,246,0.55)" stroke-width="0.35"/>
+    </svg>
+  </div>
+
+  <!-- the flap, hinged on the top edge -->
+  <div class="env-part env-flap"><div class="flap-hinge">
+    <svg viewBox="0 0 190 140" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <clipPath id="cFlap"><path d="M0 0 L88.85 94.68 Q95 101.23 101.15 94.68 L190 0 Z"/></clipPath>
+        <linearGradient id="gFlap" x1="0.15" y1="0" x2="0.55" y2="1">
+          <stop offset="0" stop-color="rgba(255,255,255,0.34)"/>
+          <stop offset="1" stop-color="rgba(74,56,36,0.12)"/>
+        </linearGradient>
+        <filter id="pSoft" x="-20%" y="-60%" width="140%" height="220%">
+          <feGaussianBlur stdDeviation="1.05"/>
+        </filter>
+      </defs>
+      <!-- its own shadow, so it travels with the flap rather than staying
+           printed on the panels underneath -->
+      <path d="M0 0 L88.85 94.68 Q95 101.23 101.15 94.68 L190 0" transform="translate(0 2)"
+            fill="none" stroke="rgba(74,56,36,0.38)" stroke-width="2.1" filter="url(#pSoft)"/>
+      <g clip-path="url(#cFlap)">
+        <image href="assets/env-paper.jpg?v=2" x="-95" y="-60" width="380" height="260"
+               preserveAspectRatio="none" transform="translate(-26 -22)"/>
+        <rect x="-2" y="-2" width="194" height="144" fill="url(#gFlap)"/>
+      </g>
+      <path d="M0 0 L88.85 94.68 Q95 101.23 101.15 94.68 L190 0" fill="none" stroke="rgba(120,96,70,0.26)" stroke-width="0.4"/>
+    </svg>
+  </div></div>
+
+</div>
+
+<nav class="rail" aria-label="Sections of this invitation">
+  <a href="#invitation"><span class="lbl">Invitation</span><span class="tick"></span></a>
+  <a href="#michael"><span class="lbl">Michael</span><span class="tick"></span></a>
+  <a href="#savio"><span class="lbl">Savio</span><span class="tick"></span></a>
+  <a href="#orwill"><span class="lbl">Orwill &amp; Jovita</span><span class="tick"></span></a>
+  <a href="#day"><span class="lbl">The Day</span><span class="tick"></span></a>
+  <a href="#details"><span class="lbl">Details</span><span class="tick"></span></a>
+  <a href="#reply"><span class="lbl">Kindly Reply</span><span class="tick"></span></a>
+</nav>
+
+<!-- ============================================ THE INVITATION -->
+<section class="screen cover-screen" id="invitation">
+  <div class="cover">
+
+    <div class="cover-copy">
+      <div class="invite">
+        <p class="eyebrow">You are invited to</p>
+        <p class="w1">Thanksgiving Mass</p>
+        <p class="w2">Dinner</p>
+      </div>
+
+      <dl class="particulars">
+        <div class="when">
+          <dt>When</dt>
+          <dd>Saturday 29 November</dd>
+        </div>
+        <div class="places">
+          <div>
+            <dt>Mass</dt>
+            <dd>Don Bosco Shrine</dd>
+          </div>
+          <div>
+            <dt>Reception</dt>
+            <dd>[Venue] · [Time]</dd>
+          </div>
+        </div>
+      </dl>
+    </div>
+
+    <div class="cover-art">
+      <canvas class="wire" data-wire="flutes" data-color="#b46a72"
+              data-speed="0.4" data-fill="1.25"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ THOSE WE CELEBRATE, ONE EACH -->
+<section class="screen solo" id="michael">
+  <article class="panel p-michael person">
+    <canvas class="wire wire--bed" data-wire="heart" data-color="#97434f"
+            data-speed="0.7" data-fill="1"></canvas>
+    <div class="person-body">
+      <p class="name name--tight">Michael</p>
+      <p class="punch">Eighty years of selfless love.</p>
+      <div class="footrow">
+        <span class="milestone">80th Birthday</span>
+        <span class="roles">Husband · Father · Grandfather</span>
+        <span class="year">1946</span>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="screen solo" id="savio">
+  <article class="panel p-savio person">
+    <canvas class="wire wire--bed" data-wire="ball" data-color="#4c5931"
+            data-speed="1" data-fill="1"></canvas>
+    <div class="person-body">
+      <p class="name name--tight">Savio</p>
+      <p class="punch">Still flying his own way.</p>
+      <div class="footrow">
+        <span class="milestone">50th Birthday</span>
+        <span class="roles">Free bird · Fifty years</span>
+        <span class="year">1976</span>
+      </div>
+    </div>
+  </article>
+</section>
+
+<section class="screen solo" id="orwill">
+  <article class="panel p-orwill person">
+    <canvas class="wire wire--bed" data-wire="rings" data-color="#2d3a47"
+            data-speed="0.55" data-fill="1"></canvas>
+    <div class="person-body">
+      <p class="name name--tight">Orwill &amp; Jovita</p>
+      <p class="punch">Twenty-five years of being there.</p>
+      <div class="footrow">
+        <span class="milestone">Silver Anniversary</span>
+        <span class="roles">Partners · Parents · Providers</span>
+        <span class="year">2001</span>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ============================================ THE DAY -->
+<section class="screen screen--sheet" id="day">
+  <p class="mast">
+    <span class="n">01</span>
+    <span class="t">The Day</span>
+    <span class="d">Saturday 29 November</span>
+  </p>
+
+  <div class="sheet-body">
+    <div class="events">
+      <div class="event">
+        <span class="when">[Time]</span>
+        <span class="what">Thanksgiving Mass</span>
+        <span class="where">Don Bosco Shrine</span>
+      </div>
+      <span class="split" aria-hidden="true"></span>
+      <div class="event">
+        <span class="when">[Time]</span>
+        <span class="what">Dinner</span>
+        <span class="where">[Venue]</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="micro micro--dim sheet-note">
+    Please arrive fifteen minutes before Mass to be seated.
+  </p>
+</section>
+
+<!-- ============================================ DETAILS -->
+<section class="screen screen--sheet" id="details">
+  <p class="mast">
+    <span class="n">02</span>
+    <span class="t">Details</span>
+  </p>
+
+  <div class="sheet-body">
+    <div class="data">
+      <div>
+        <p class="micro micro--dim">Date</p>
+        <p class="val">Saturday 29 November</p>
+      </div>
+      <div>
+        <p class="micro micro--dim">Mass</p>
+        <p class="val">Don Bosco Shrine, [Address]</p>
+      </div>
+      <div>
+        <p class="micro micro--dim">Reception</p>
+        <p class="val">[Venue], [Address]</p>
+      </div>
+      <div>
+        <p class="micro micro--dim">Dress</p>
+        <p class="val">Semi-formal, festive</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ RSVP -->
+<section class="screen screen--sheet" id="reply">
+  <p class="mast">
+    <span class="n">03</span>
+    <span class="t">Kindly Reply</span>
+  </p>
+
+  <div class="sheet-body">
+    <p class="reply-line">
+      RSVP to Jovita Saldanha
+      <span class="by">by [date]</span>
+    </p>
+  </div>
+
+  <p class="micro micro--dim sheet-note">
+    Gifts only in the form of blessings.
+  </p>
+</section>
+
+<script src="wireframe.js?v=7"></script>
+<script>
+/* ---- the envelope ------------------------------------------------------
+   The envelope settles -> the flap falls back -> a blank card rises out of
+   it -> the card grows until it IS the hero card -> the page writes itself
+   in behind it.
+
+   The handover is the point of the whole thing: the card and the hero card
+   are the same cream, the same 3px keyline, and by then the same rectangle
+   to the pixel, so the card can simply be taken away. Nothing is morphed,
+   nothing cross-fades, and only then does the type arrive.
+
+   It plays on every load, so a refresh replays it. Skipped when the reader
+   asked for a particular section by URL -- landing mid-page and then being
+   shown an opening makes no sense -- or when they have asked the OS for
+   reduced motion. A tap opens it early, or skips it once it is running. */
+(function () {
+  var gate  = document.getElementById('gate');
+  var card  = document.getElementById('gateCard');
+  var back  = gate && gate.querySelector('.env-back');
+  var cover = document.querySelector('.cover');
+  if (!gate || !card || !back || !cover) return;
+
+  var deep = location.hash && location.hash !== '#invitation';
+  var still = window.matchMedia &&
+              window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (deep || still) return;
+
+  /* Put the reader at the top before anything is covered up -- a restored
+     scroll position would otherwise leave them three sections down when the
+     card lands and the gate lifts. */
+  var root = document.documentElement;
+  var smooth = root.style.scrollBehavior;
+  root.style.scrollBehavior = 'auto';
+  window.scrollTo(0, 0);
+  root.style.scrollBehavior = smooth;
+
+  root.classList.add('gate-on', 'gate-hold');
+  gate.hidden = false;
+  gate.removeAttribute('aria-hidden');
+
+  function place(r) {
+    card.style.left = r.left + 'px';
+    card.style.top = r.top + 'px';
+    card.style.width = r.width + 'px';
+    card.style.height = r.height + 'px';
+  }
+
+  /* The card's berth, read off the envelope's live box so a resize during
+     the sequence cannot leave the two out of register. It is tucked wholly
+     inside: the front panel and the closed flap together cover the whole
+     rectangle, so none of it shows until the flap is out of the way. */
+  function berth() {
+    var e = back.getBoundingClientRect();
+    return { left: e.left + e.width * 0.055, top: e.top + e.height * 0.11,
+             width: e.width * 0.89, height: e.height * 0.80, h: e.height };
+  }
+
+  var timers = [];
+  function at(ms, fn) { timers.push(setTimeout(fn, ms)); }
+  function phase(p) { gate.setAttribute('data-phase', p); }
+
+  var started = false, finished = false;
+
+  /* the page fills in */
+  function pop() {
+    root.classList.add('gate-pop');
+  }
+
+  /* the card is taken away at the moment it is indistinguishable from the
+     hero card underneath it, and the backdrop fades, which is what brings
+     the paper grain up with it */
+  function land() {
+    gate.classList.add('gone');
+    root.classList.remove('gate-on');
+    at(340, pop);
+    at(640, function () { if (gate.parentNode) gate.parentNode.removeChild(gate); });
+  }
+
+  function finish() {
+    if (finished) return;
+    finished = true;
+    timers.forEach(clearTimeout);
+    timers = [];
+    if (gate.parentNode) gate.parentNode.removeChild(gate);
+    root.classList.remove('gate-on');
+    pop();
+  }
+
+  function run() {
+    if (started || finished) return;
+    started = true;
+
+    at(800, function () { phase('opening'); });           /* the flap goes back */
+
+    at(1640, function () {                                /* the card rises out */
+      var r = berth();
+      phase('rising');
+      place({ left: r.left - r.width * 0.015, top: r.top - r.h * 0.70,
+              width: r.width * 1.03, height: r.height * 1.03 });
+    });
+
+    at(2420, function () {                                /* and becomes the page */
+      phase('out');
+      place(cover.getBoundingClientRect());
+    });
+
+    at(3270, function () { if (!finished) { finished = true; land(); } });
+  }
+
+  place(berth());
+
+  /* One frame between placing the card and flipping to `in`, so the entrance
+     has something to transition FROM. rAF is the right way to ask for that
+     frame -- but it is suspended in a background tab, and a link tapped in
+     WhatsApp very often lands in one. A timer as well, because a page that
+     never starts is a page that never unlocks. */
+  function start() { if (started) return; phase('in'); run(); }
+  if (typeof requestAnimationFrame === 'function') {
+    requestAnimationFrame(function () { requestAnimationFrame(start); });
+  }
+  at(60, start);
+
+  /* and a stop of last resort: whatever goes wrong, nobody is left looking
+     at a sealed envelope over a page they cannot scroll */
+  at(9000, finish);
+
+  /* A tap skips to the page. Nobody should be made to sit through an
+     animation they have already seen -- and this one replays every load. */
+  gate.addEventListener('click', finish);
+  window.addEventListener('keydown', function (e) {
+    if (finished) return;
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+      e.preventDefault(); finish();
+    }
+  });
+  window.addEventListener('resize', function () {
+    if (finished) return;
+    var p = gate.getAttribute('data-phase');
+    if (p === 'out') place(cover.getBoundingClientRect());
+    else if (p !== 'rising') place(berth());
+  });
+})();
+</script>
+<script>
+/* Light the rail tick for the section the reader is actually looking at.
+   A midpoint test, not "most visible": the three short sections at the foot
+   can never cover as much of the window as a full-height panel, so a
+   coverage test would leave the rail stuck on the panel above them. */
+(function () {
+  var links = [].slice.call(document.querySelectorAll('.rail a'));
+  if (!links.length) return;
+
+  var secs = links.map(function (a) {
+    return { link: a, el: document.getElementById(a.getAttribute('href').slice(1)) };
+  }).filter(function (s) { return s.el; });
+  if (!secs.length) return;
+
+  var queued = false;
+
+  function light() {
+    queued = false;
+    var mid = window.innerHeight / 2;
+    var best = secs[0], i, r;
+    for (i = 0; i < secs.length; i++) {
+      r = secs[i].el.getBoundingClientRect();
+      if (r.top <= mid && r.bottom > mid) { best = secs[i]; break; }
+      if (r.top > mid) break;          /* past the midpoint; keep the last */
+      best = secs[i];
+    }
+    for (i = 0; i < secs.length; i++) {
+      if (secs[i] === best) secs[i].link.setAttribute('aria-current', 'true');
+      else secs[i].link.removeAttribute('aria-current');
+    }
+    document.documentElement.setAttribute('data-at', best.el.id);
+  }
+
+  function ping() {
+    if (queued) return;
+    queued = true;
+    /* rAF is the right place to read layout during a scroll, but it is
+       suspended while the tab is hidden -- and a hidden tab can still be
+       scrolled, by a restored position or by an anchor. Fall back so the
+       rail is never left lit on the wrong section. */
+    if (typeof requestAnimationFrame === 'function' && !document.hidden) {
+      requestAnimationFrame(light);
+    } else {
+      setTimeout(light, 0);
+    }
+  }
+
+  window.addEventListener('scroll', ping, { passive: true });
+  window.addEventListener('resize', ping);
+  light();
+})();
+</script>
+</body>
+</html>

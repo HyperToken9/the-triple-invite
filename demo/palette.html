@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The System — Demo</title>
+<link rel="stylesheet" href="system.css?v=21">
+<style>
+  /* page chrome only -- nothing here is part of the system */
+  .nav {
+    display: flex; gap: 26px; justify-content: center;
+    padding: 17px 0;
+    border-bottom: 1px solid var(--hair);
+    font-family: var(--micro); font-weight: 500;
+    font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase;
+  }
+  .nav a { color: var(--bone-dim); text-decoration: none; }
+  .nav a:hover, .nav a[aria-current] { color: var(--neon); }
+
+  .masthead { padding: 74px 0 10px; }
+  .masthead h1 {
+    font-family: var(--display); font-weight: 500;
+    font-size: clamp(46px, 9vw, 116px); line-height: 0.86;
+    letter-spacing: -0.02em; margin: 0 0 22px;
+  }
+  .masthead .lede { max-width: 54ch; }
+
+  .side .num {
+    font-family: var(--display); font-size: 46px; line-height: 0.8;
+    opacity: 0.32; margin-bottom: 12px;
+  }
+  .side .micro { margin-bottom: 8px; }
+  .side .running { font-size: 12.5px; opacity: 0.55; }
+
+  .stack { display: flex; flex-direction: column; gap: 16px; }
+  .bay { display: flex; flex-direction: column; gap: 10px; }
+  .caption { opacity: 0.42; }
+
+  /* type specimen */
+  .spec-line {
+    display: flex; align-items: baseline; gap: 20px;
+    padding: 16px 0; border-top: 1px solid var(--hair);
+  }
+  .spec-line .tag { flex: 0 0 96px; }
+
+  /* the thumbnail proof */
+  .thumbs { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+  /* 192px, not smaller: the micro type has a hard 10px floor, so below
+     roughly this width the fixed labels stop fitting a 4:5 box */
+  .thumbs .panel { width: 192px; }
+
+  .legend { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 14px; }
+
+  .face { padding: 22px 0; border-top: 1px solid var(--hair); }
+  .face:first-child { border-top: 0; }
+  .face-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+  .face-head .why { opacity: 0.5; font-size: 12px; letter-spacing: 0; text-transform: none; }
+  .face-name {
+    font-size: 58px; line-height: 1.02; margin: 4px 0 8px;
+    letter-spacing: -0.015em;
+  }
+  .face-small { font-size: 17px; line-height: 1.45; opacity: 0.72; }
+  .face-name, .face-small { font-weight: 500; }
+  .face-name, .face-small { font-family: 'Bodoni Moda', serif; }
+
+  /* The same Bodoni Moda, pinned to its TEXT optical size instead of letting
+     the browser pick the 90pt display cut at display sizes. Identical
+     skeleton, thicker thins. font-optical-sizing:none is what stops the
+     browser overriding the axis from the font-size. */
+  .f-opsz .face-name, .f-opsz .face-small {
+    font-optical-sizing: none;
+    font-variation-settings: 'opsz' 11;
+  }
+  .f-opsz-mid .face-name, .f-opsz-mid .face-small {
+    font-optical-sizing: none;
+    font-variation-settings: 'opsz' 20;
+    font-weight: 500;
+  }
+  /* the browser's own choice, shown only so the locked cut has something to
+     be compared against */
+  .f-default .face-name, .f-default .face-small {
+    font-optical-sizing: auto;
+    font-variation-settings: normal;
+    font-weight: 400;
+  }
+  .face.locked { border-left: 2px solid var(--neon); padding-left: 20px; }
+
+  /* the axis table */
+  .axis { display: flex; align-items: baseline; gap: 20px; padding: 13px 0;
+          border-top: 1px solid var(--hair); }
+  .axis .k { flex: 0 0 132px; }
+  .axis .v { font-family: var(--display); font-weight: 500; font-size: 19px; }
+  .axis .n { flex: 1; font-size: 12.5px; opacity: 0.55; font-family: var(--micro); }
+
+  .spec-line .use { flex: 0 0 150px; font-size: 11.5px; opacity: 0.5;
+                    font-family: var(--micro); letter-spacing: 0; text-transform: none; }
+  .spec-line .px { flex: 0 0 74px; font-family: var(--display); font-size: 17px; opacity: 0.6; }
+  .spec-line .sample { flex: 1; min-width: 0; }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <a href="overview.html">Overview</a>
+  <a href="teaser.html">WhatsApp Teaser</a>
+  <a href="./">Event Page</a>
+  <a href="palette.html" aria-current="page">The System</a>
+</div>
+
+<div class="sheet">
+
+  <header class="masthead">
+    <p class="micro micro--lead" style="color: var(--neon); margin-bottom: 20px;">
+      Design System — Draft 01
+    </p>
+    <h1>Bold, tonal,<br>wireframe.</h1>
+    <p class="running lede">
+      Two voices. The <b>shell</b> is vanilla cream with a rosewood line drawing and carries
+      everything that belongs to the evening as a whole. The <b>panels</b> are one saturated
+      colour each, with the name set enormous in a tint of that same colour. Nothing is
+      decorated; the scale does the work.
+    </p>
+  </header>
+
+  <!-- ============================================ 00 THE FACES -->
+  <section class="chapter">
+    <div class="side">
+      <div class="num">00</div>
+      <p class="micro">The Two Faces</p>
+      <p class="running">
+        Two families, both self-hosted as variable woff2 &mdash; nothing is fetched at
+        runtime, so the invitation renders with no connection. The display face is
+        pinned to one optical cut; that single setting is what made it readable.
+      </p>
+    </div>
+    <div class="stack">
+
+      <div class="face locked f-opsz-mid">
+        <div class="face-head">
+          <p class="micro" style="color: var(--neon);">Display &mdash; in use</p>
+          <p class="micro why">Bodoni Moda, <b>opsz 20</b>, weight 500. Names, figures, the cover stack, the slant.</p>
+        </div>
+        <p class="face-name">Michael &middot; Savio &middot; Orwill &amp; Jovita</p>
+        <p class="face-small">Thanksgiving Mass at Don Bosco Shrine, then dinner to follow.</p>
+      </div>
+
+      <div class="face f-default">
+        <div class="face-head">
+          <p class="micro micro--dim">For comparison &mdash; not in use</p>
+          <p class="micro why">The same file with the axis left to the browser. At this size it picks
+            the ~90pt cut, whose hairlines are drawn to almost vanish. This is what
+            &ldquo;not very readable&rdquo; actually was &mdash; not the wrong typeface.</p>
+        </div>
+        <p class="face-name">Michael &middot; Savio &middot; Orwill &amp; Jovita</p>
+        <p class="face-small">Thanksgiving Mass at Don Bosco Shrine, then dinner to follow.</p>
+      </div>
+
+      <div style="padding-top: 26px;">
+        <div class="axis" style="border-top: 0;">
+          <p class="micro tag k">Display</p>
+          <p class="v">Bodoni Moda</p>
+          <p class="n">bodoni-moda-var.woff2 &middot; latin subset &middot; wght 400&ndash;900, opsz 6&ndash;96</p>
+        </div>
+        <div class="axis">
+          <p class="micro tag k">Micro</p>
+          <p class="v" style="font-family: var(--micro); font-size: 15px; letter-spacing: 0.1em;">ARCHIVO</p>
+          <p class="n">archivo-var.woff2 &middot; latin subset &middot; wght 100&ndash;900 &middot; no opsz axis, ignores the setting</p>
+        </div>
+        <div class="axis">
+          <p class="micro tag k">The pin</p>
+          <p class="v" style="font-size: 14px; font-family: var(--micro);">opsz 20 / wght 500</p>
+          <p class="n">Set once on <b>body</b> and inherited. <b>font-optical-sizing: none</b> is the part
+             that stops the browser overriding the axis from the font size.</p>
+        </div>
+      </div>
+
+      <p class="micro caption">
+        Open-licensed, subset, and sitting in assets/fonts &mdash; the folder is the whole dependency.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================================================== 01 COLOUR -->
+  <section class="chapter">
+    <div class="side">
+      <div class="num">01</div>
+      <p class="micro">Colour</p>
+      <p class="running">
+        Each person is a field and a tint of that field. Ink never contrasts with its
+        ground — it lifts out of it.
+      </p>
+    </div>
+    <div class="stack">
+      <div class="swatch-row">
+        <div class="panel p-shell swatch" style="border: 1px solid var(--hair);">
+          <p class="micro micro--dim">Shell · Vanilla Cream</p>
+          <div>
+            <div class="chip" style="color: var(--neon);">Aa</div>
+            <p class="micro micro--dim" style="margin-top: 14px;">#FFF7E6 · #B46A72</p>
+          </div>
+        </div>
+        <div class="panel p-michael swatch">
+          <p class="micro micro--dim">Michael · Blush Petal</p>
+          <div>
+            <div class="chip">Aa</div>
+            <p class="micro micro--dim" style="margin-top: 14px;">#F7C8D3 · #97434F</p>
+          </div>
+        </div>
+        <div class="panel p-savio swatch">
+          <p class="micro micro--dim">Savio · Sage Leaf</p>
+          <div>
+            <div class="chip">Aa</div>
+            <p class="micro micro--dim" style="margin-top: 14px;">#A8B58A · #4C5931</p>
+          </div>
+        </div>
+        <div class="panel p-orwill swatch">
+          <p class="micro micro--dim">Orwill &amp; Jovita · Misty Sky</p>
+          <div>
+            <div class="chip">Aa</div>
+            <p class="micro micro--dim" style="margin-top: 14px;">#A9B7C6 · #2D3A47</p>
+          </div>
+        </div>
+      </div>
+      <p class="micro caption">
+        Hue is assigned, not decided — swap any of the three without touching a component.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================================================== 02 TYPE -->
+  <section class="chapter">
+    <div class="side">
+      <div class="num">02</div>
+      <p class="micro">Type</p>
+      <p class="running">
+        Two scales, not a range. Panel type is sized in <b>cqw</b> so it scales with
+        its panel rather than the window; shell type is sized in px. The px column
+        shows what each one resolves to on a full-width panel.
+      </p>
+    </div>
+    <div class="stack">
+      <div>
+        <div class="spec-line" style="border-top: 0;">
+          <p class="micro tag micro--dim">Name</p>
+          <p class="micro px">27cqw</p>
+          <p class="micro use">Every celebrant panel. One figure for all three &mdash; the type size is the
+            constant, the line length is the variable.</p>
+          <p class="name sample" style="font-size: 54px;">Savio</p>
+        </div>
+        <div class="spec-line">
+          <p class="micro tag micro--dim">Name, solo</p>
+          <p class="micro px">12cqw</p>
+          <p class="micro use">The same name once a celebrant owns a whole screen and the panel turns landscape.</p>
+          <p class="name sample" style="font-size: 38px;">Orwill &amp; Jovita</p>
+        </div>
+        <div class="spec-line">
+          <p class="micro tag micro--dim">Figure</p>
+          <p class="micro px">30cqw</p>
+          <p class="micro use">Standalone numerals.</p>
+          <p class="figure sample" style="font-size: 54px;">80 / 50 / 25</p>
+        </div>
+        <div class="spec-line">
+          <p class="micro tag micro--dim">Punch</p>
+          <p class="micro px">17&ndash;22px</p>
+          <p class="micro use">The italic line that closes a bio. Two lines at most, and it has to land.</p>
+          <p class="slant sample" style="font-size: 20px;">Eighty years of quiet, stubborn love.</p>
+        </div>
+        <div class="spec-line">
+          <p class="micro tag micro--dim">Micro</p>
+          <p class="micro px">9&ndash;10px</p>
+          <p class="micro use">Every fixed label. 10px free-standing, 9px and tighter tracking in a corner.</p>
+          <p class="micro sample">Don Bosco Shrine &middot; Thanksgiving Mass</p>
+        </div>
+        <div class="spec-line">
+          <p class="micro tag micro--dim">Running</p>
+          <p class="micro px">13.5px</p>
+          <p class="micro use">Sparingly, and never smaller. A longer block belongs on the event page.</p>
+          <p class="running sample" style="max-width: 34ch;">
+            A reply helps us plan the seating and the catering.
+          </p>
+        </div>
+      </div>
+
+      <p class="micro caption" style="margin-top: 22px;">
+        The cover runs its own ladder &mdash; below.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============================================ 02b THE COVER LADDER -->
+  <section class="chapter">
+    <div class="side">
+      <div class="num">03</div>
+      <p class="micro">The Cover Ladder</p>
+      <p class="running">
+        One centred column, and the sizes follow the reading order rather than the
+        other way round: what is happening, then when, then where. 155 is decoration
+        and closes the stack at micro size.
+      </p>
+    </div>
+    <div class="stack">
+      <div>
+        <div class="spec-line" style="border-top: 0;">
+          <p class="micro tag micro--dim">Invited</p>
+          <p class="micro px">1.9cqw</p>
+          <p class="micro use">Rosewood, 0.34em tracking. Says what the page is.</p>
+          <p class="sample" style="font-family: var(--micro); font-weight: 600; font-size: 17px;
+             letter-spacing: 0.34em; text-transform: uppercase; color: var(--neon);">You Are Invited</p>
+        </div>
+        <div class="spec-line">
+          <p class="micro tag micro--dim">Happening</p>
+          <p class="micro px">5.2cqw</p>
+          <p class="micro use">The largest thing on the cover.</p>
+          <p class="sample" style="font-family: var(--display); font-weight: 500; font-size: 42px;
+             line-height: 1.06; letter-spacing: -0.018em;">A Thanksgiving Mass, then dinner</p>
+        </div>
+        <div class="spec-line">
+          <p class="micro tag micro--dim">Date</p>
+          <p class="micro px">3.9cqw</p>
+          <p class="micro use">Second in the ladder.</p>
+          <p class="sample" style="font-family: var(--display); font-weight: 500; font-size: 32px;
+             letter-spacing: -0.012em;">Saturday 29 November</p>
+        </div>
+        <div class="spec-line">
+          <p class="micro tag micro--dim">Place</p>
+          <p class="micro px">2.9cqw</p>
+          <p class="micro use">Third. Never a footnote.</p>
+          <p class="sample" style="font-family: var(--display); font-weight: 500; font-size: 25px;
+             line-height: 1.25;">Don Bosco Shrine</p>
+        </div>
+        <div class="spec-line">
+          <p class="micro tag micro--dim">Blessings</p>
+          <p class="micro px">1.2cqw</p>
+          <p class="micro use">Was 30cqw &mdash; over 300px, and the least useful thing on an invitation.</p>
+          <p class="sample" style="font-family: var(--micro); font-weight: 500; font-size: 11px;
+             letter-spacing: 0.28em; text-transform: uppercase; opacity: 0.6;">155 Years of Blessings</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================== 03 THE THREE -->
+  <section class="chapter">
+    <div class="side">
+      <div class="num">04</div>
+      <p class="micro">Those We Celebrate</p>
+      <p class="running">
+        One panel each. The wireframe sits behind the name and the letters cross it —
+        the type always wins. Each mark turns slowly and is drawn live, not a video.
+      </p>
+    </div>
+    <div class="stack">
+      <div class="trio">
+
+        <article class="panel panel--tall p-michael">
+          <canvas class="wire wire--bed" data-wire="heart" data-color="#97434f" data-speed="0.7"></canvas>
+          <div class="corners">
+            <p class="micro">Michael Colaco</p>
+            <p class="micro micro--dim">01</p>
+            <p class="micro micro--dim">Eighty Years</p>
+            <p class="micro micro--dim">1946</p>
+          </div>
+          <div>
+            <p class="name name--tight">Michael</p>
+            <hr class="rule" style="margin: 18px 0 14px;">
+            <p class="micro micro--dim">Husband · Father</p>
+          </div>
+        </article>
+
+        <article class="panel panel--tall p-savio">
+          <canvas class="wire wire--bed" data-wire="ball" data-color="#4c5931" data-speed="1"></canvas>
+          <div class="corners">
+            <p class="micro">Savio Colaco</p>
+            <p class="micro micro--dim">02</p>
+            <p class="micro micro--dim">Fifty Years</p>
+            <p class="micro micro--dim">1976</p>
+          </div>
+          <div>
+            <p class="name name--tight">Savio</p>
+            <hr class="rule" style="margin: 18px 0 14px;">
+            <p class="micro micro--dim">Free bird · Still flying</p>
+          </div>
+        </article>
+
+        <article class="panel panel--tall p-orwill">
+          <canvas class="wire wire--bed" data-wire="rings" data-color="#2d3a47" data-speed="0.55"></canvas>
+          <div class="corners">
+            <p class="micro">Orwill &amp; Jovita</p>
+            <p class="micro micro--dim">03</p>
+            <p class="micro micro--dim">Twenty-Five Years</p>
+            <p class="micro micro--dim">2001</p>
+          </div>
+          <div>
+            <p class="name name--tight">Orwill<br>&amp; Jovita</p>
+            <hr class="rule" style="margin: 18px 0 14px;">
+            <p class="micro micro--dim">Partners · Parents</p>
+          </div>
+        </article>
+
+      </div>
+      <p class="micro caption">
+        Heart · disco ball · interlocked bands, one carrying the stone. Same renderer.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================================================== 04 THE COVER -->
+  <section class="chapter">
+    <div class="side">
+      <div class="num">05</div>
+      <p class="micro">The Cover</p>
+      <p class="running">
+        The shell voice. The number is the headline — three milestones add to one figure,
+        and that figure carries the whole card.
+      </p>
+    </div>
+    <div class="bay">
+      <article class="panel panel--wide p-shell" style="border: 1px solid var(--hair);">
+        <canvas class="wire wire--bed" data-wire="flutes" data-color="#b46a72" data-speed="0.4"
+                style="opacity: 0.4;"></canvas>
+        <div class="corners">
+          <p class="micro" style="color: var(--neon);">The Colaco Family</p>
+          <p class="micro micro--dim">Invitation</p>
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 30px; flex-wrap: wrap;">
+          <p class="figure">155</p>
+          <div style="padding-bottom: 8px;">
+            <p class="name" style="font-size: clamp(26px, 5cqw, 62px);">Years of<br>Blessings</p>
+          </div>
+        </div>
+        <div class="corners">
+          <p class="micro micro--dim">Thanksgiving Mass &amp; Dinner Reception</p>
+          <p class="micro micro--dim">Don Bosco Shrine</p>
+        </div>
+      </article>
+      <p class="micro caption">16:9 · the same panel at 4:5 becomes the WhatsApp card. The shell’s mark is the clink.</p>
+    </div>
+  </section>
+
+  <!-- ================================================== 05 SCHEDULE -->
+  <section class="chapter">
+    <div class="side">
+      <div class="num">06</div>
+      <p class="micro">Schedule</p>
+      <p class="running">
+        One object at two densities. Staggered on the cover where it is decoration;
+        flush on the event page where it is information.
+      </p>
+    </div>
+    <div class="stack">
+
+      <div class="bay">
+        <p class="micro caption">Flush — the working version</p>
+        <div class="ledger">
+          <div class="ledger-row">
+            <p class="micro when">05:30 PM</p>
+            <p class="what">Thanksgiving Mass</p>
+            <p class="micro where">Don Bosco Shrine</p>
+          </div>
+          <div class="ledger-row">
+            <p class="micro when">07:00 PM</p>
+            <p class="what">Cocktails &amp; Welcome</p>
+            <p class="micro where">Garden Lawn</p>
+          </div>
+          <div class="ledger-row">
+            <p class="micro when">08:00 PM</p>
+            <p class="what">Dinner &amp; Toasts</p>
+            <p class="micro where">Banquet Hall</p>
+          </div>
+          <div class="ledger-row">
+            <p class="micro when">09:30 PM</p>
+            <p class="what">Music &amp; Dancing</p>
+            <p class="micro where">Banquet Hall</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bay" style="margin-top: 22px;">
+        <p class="micro caption">Staggered — the decorative version, on a field</p>
+        <article class="panel panel--band p-savio" style="justify-content: center;">
+          <canvas class="wire wire--bed" data-wire="ball" data-color="#4c5931" data-speed="0.8"
+                  style="opacity: 0.32;"></canvas>
+          <div class="ledger ledger--stagger">
+            <div class="ledger-row">
+              <p class="micro when">I</p>
+              <p class="what">Thanksgiving Mass</p>
+              <p class="micro where">05:30 PM</p>
+            </div>
+            <div class="ledger-row">
+              <p class="micro when">II</p>
+              <p class="what">Dinner &amp; Reception</p>
+              <p class="micro where">07:00 PM</p>
+            </div>
+            <div class="ledger-row">
+              <p class="micro when">III</p>
+              <p class="what">Music &amp; Dancing</p>
+              <p class="micro where">09:30 PM</p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ================================================== 06 DETAILS -->
+  <section class="chapter">
+    <div class="side">
+      <div class="num">07</div>
+      <p class="micro">Details &amp; RSVP</p>
+      <p class="running">
+        Facts go in a hairline grid — no cards, no rounding, no icons. The one button
+        on the card is lagoon on cream and flips to rosewood.
+      </p>
+    </div>
+    <div class="stack">
+      <div class="data">
+        <div>
+          <p class="micro micro--dim">Date</p>
+          <p class="val">Saturday<br>29 November</p>
+        </div>
+        <div>
+          <p class="micro micro--dim">Mass</p>
+          <p class="val">Don Bosco<br>Shrine</p>
+        </div>
+        <div>
+          <p class="micro micro--dim">Reception</p>
+          <p class="val">[Venue]<br>[Address]</p>
+        </div>
+        <div>
+          <p class="micro micro--dim">Dress</p>
+          <p class="val">Semi-formal<br>Festive</p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 26px; flex-wrap: wrap; margin-top: 26px;">
+        <a class="action" href="#">Confirm Attendance →</a>
+        <p class="micro micro--dim">Kindly reply by [date] · [name] [phone]</p>
+      </div>
+
+      <div style="margin-top: 40px; display: flex; gap: 22px; align-items: flex-start;">
+        <hr class="rule rule--heavy" style="width: 64px; margin-top: 14px; flex: 0 0 auto; color: var(--neon);">
+        <p class="slant" style="max-width: 30ch;">
+          Because some blessings are<br>best celebrated together.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================== 07 SCALING -->
+  <section class="chapter">
+    <div class="side">
+      <div class="num">08</div>
+      <p class="micro">At Thumbnail</p>
+      <p class="running">
+        The panels size their type to themselves, not to the window, so the same markup
+        is a full-bleed card and a WhatsApp thumbnail with nothing retuned.
+      </p>
+    </div>
+    <div class="stack">
+      <div class="thumbs">
+        <article class="panel panel--tall p-michael">
+          <canvas class="wire wire--bed" data-wire="heart" data-color="#97434f" data-speed="0.7"></canvas>
+          <p class="micro">01</p>
+          <div>
+            <p class="name name--tight">Michael</p>
+            <hr class="rule" style="margin: 10px 0 8px;">
+            <p class="micro micro--dim">Eighty</p>
+          </div>
+        </article>
+        <article class="panel panel--tall p-savio">
+          <canvas class="wire wire--bed" data-wire="ball" data-color="#4c5931"></canvas>
+          <p class="micro">02</p>
+          <div>
+            <p class="name name--tight">Savio</p>
+            <hr class="rule" style="margin: 10px 0 8px;">
+            <p class="micro micro--dim">Fifty</p>
+          </div>
+        </article>
+        <article class="panel panel--tall p-orwill">
+          <canvas class="wire wire--bed" data-wire="rings" data-color="#2d3a47" data-speed="0.55"></canvas>
+          <p class="micro">03</p>
+          <div>
+            <p class="name name--tight">Orwill<br>&amp; Jovita</p>
+            <hr class="rule" style="margin: 10px 0 8px;">
+            <p class="micro micro--dim">Twenty-Five</p>
+          </div>
+        </article>
+        <article class="panel panel--tall p-shell" style="border: 1px solid var(--hair);">
+          <canvas class="wire wire--bed" data-wire="flutes" data-color="#b46a72" data-speed="0.4"
+                  style="opacity: 0.45;"></canvas>
+          <p class="micro" style="color: var(--neon);">Invitation</p>
+          <div>
+            <p class="figure figure--fill">155</p>
+            <hr class="rule" style="margin: 10px 0 8px;">
+            <p class="micro micro--dim">Years of Blessings</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================== NOTES -->
+  <section class="chapter">
+    <div class="side">
+      <p class="micro">Notes</p>
+    </div>
+    <div class="stack" style="gap: 12px;">
+      <p class="running" style="max-width: 62ch;">
+        <b>Nothing has been applied to the other three pages yet.</b> This board is the
+        whole proposal; index, teaser and event are still on the old look.
+      </p>
+      <p class="running" style="max-width: 62ch;">
+        <b>Open.</b> The hue assignment is mine, not yours — say the word and any of the
+        three changes in one line. The teaser has to ship as a still image, so its
+        wireframe will be a frozen frame rather than the live one. And the silver
+        anniversary currently reads teal; if you want it literally silver, that panel
+        becomes the one achromatic field in the set, which would also make it the
+        odd one out.
+      </p>
+    </div>
+  </section>
+
+</div>
+
+<script src="wireframe.js?v=1"></script>
+</body>
+</html>

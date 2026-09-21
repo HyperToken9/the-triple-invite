@@ -1,0 +1,76 @@
+:root {
+  --charcoal: #211f1c;
+  --charcoal-deep: #171615;
+  --cream: #f6f1e7;
+  --cream-dim: #d9d2c2;
+  --gold: #c6a15b;
+  --gold-soft: #a8863f;
+  --silver: #9c9890;
+  --serif: Georgia, 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Times New Roman', serif;
+  --script: 'Segoe Script', 'Brush Script MT', 'Bradley Hand', 'Z003',
+            'URW Chancery L', 'Apple Chancery', cursive;
+  /* the spec-sheet voice from the reference: technical, wide-tracked */
+  --mono: 'Iosevka', 'JetBrains Mono', 'DejaVu Sans Mono', 'Menlo',
+          'Consolas', monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--serif);
+  background: #0e0d0c;
+  color: var(--cream);
+}
+
+.nav {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  padding: 18px 0;
+  background: var(--charcoal-deep);
+  border-bottom: 1px solid #2c2a26;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.nav a {
+  color: var(--gold);
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+.nav a:hover { opacity: 1; text-decoration: underline; }
+
+.note {
+  max-width: 640px;
+  margin: 28px auto 0;
+  padding: 0 20px;
+  color: var(--silver);
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* ---- shared ornament ---- */
+.sunburst {
+  width: 90px;
+  height: 90px;
+  margin: 0 auto;
+  opacity: 0.9;
+}
+
+.divider {
+  width: 120px;
+  height: 1px;
+  margin: 18px auto;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.eyebrow {
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--gold);
+}

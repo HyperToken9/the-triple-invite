@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Demo — Content Experience</title>
+<link rel="stylesheet" href="style.css?v=5">
+<style>
+  .hero {
+    max-width: 720px;
+    margin: 8vh auto 0;
+    text-align: center;
+    padding: 0 20px;
+  }
+  .hero h1 {
+    font-weight: 400;
+    font-size: 28px;
+    letter-spacing: 0.02em;
+  }
+  .cards {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 0 20px;
+  }
+  .card {
+    background: var(--charcoal);
+    border: 1px solid #33302a;
+    border-radius: 4px;
+    width: 320px;
+    text-decoration: none;
+    color: var(--cream);
+    overflow: hidden;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  .card:hover { transform: translateY(-4px); border-color: var(--gold); }
+  .card-preview {
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--charcoal-deep);
+    font-size: 12px;
+    color: var(--silver);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .card-body { padding: 20px; }
+  .card-body h3 { margin: 0 0 6px; font-weight: 400; font-size: 18px; color: var(--gold); }
+  .card-body p { margin: 0; font-size: 13px; color: var(--silver); line-height: 1.5; }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="overview.html">Overview</a>
+    <a href="teaser.html">WhatsApp Teaser</a>
+    <a href="./">Event Page</a>
+    <a href="palette.html">Surface Study</a>
+  </div>
+
+  <div class="hero">
+    <p class="eyebrow">Working Demo</p>
+    <h1>Content &amp; layout preview — not final artwork</h1>
+    <p class="note">
+      This is a placeholder-styled mock so you can react to the structure, tone, and flow
+      before we commission final illustration, photography treatment, and print-ready assets.
+      Copy, names, and times below are drawn from what you've shared so far — swap freely.
+    </p>
+  </div>
+
+  <div class="cards">
+    <a class="card" href="teaser.html">
+      <div class="card-preview">Portrait · 4:5</div>
+      <div class="card-body">
+        <h3>WhatsApp Teaser Card</h3>
+        <p>The single image sent alongside the event link — first impression, has to work at thumbnail size.</p>
+      </div>
+    </a>
+    <a class="card" href="./">
+      <div class="card-preview">Scrollable page</div>
+      <div class="card-body">
+        <h3>Event Page</h3>
+        <p>The full Notion-style landing page with those we celebrate, itinerary, and RSVP.</p>
+      </div>
+    </a>
+    <a class="card" href="palette.html">
+      <div class="card-preview">Design board</div>
+      <div class="card-body">
+        <h3>Surface Study</h3>
+        <p>Where the look is being worked out — still open. Nothing from it has been applied to the pages.</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="note" style="margin-bottom: 60px;">
+    Note on tone: the reference card used a literal cross + church icon, which read as a bit
+    heavy-handed. This version keeps a quiet nod to faith and gratitude — a short line and a
+    simple radiating mark — without foregrounding religious iconography.
+  </div>
+</body>
+</html>

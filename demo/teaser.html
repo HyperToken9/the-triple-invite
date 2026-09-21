@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WhatsApp Teaser — Demo</title>
+<link rel="stylesheet" href="style.css?v=5">
+<style>
+  .wrap {
+    max-width: 900px;
+    margin: 40px auto 80px;
+    padding: 0 20px;
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .phone {
+    width: 320px;
+    background: #000;
+    border-radius: 28px;
+    padding: 10px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  }
+  .phone-screen {
+    background: #0b141a;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+  .chat-header {
+    background: #1f2c34;
+    color: #e9edef;
+    padding: 10px 14px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .chat-header .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--gold-soft);
+  }
+  .chat-body { padding: 14px 10px; min-height: 460px; }
+  .bubble {
+    background: #005c4b;
+    border-radius: 8px;
+    padding: 6px;
+    margin-left: auto;
+    width: 88%;
+  }
+  .bubble .card {
+    border-radius: 4px;
+    padding: 20px 14px;
+  }
+  .bubble .eyebrow { font-size: 8px; }
+  .bubble .envelope { width: 46%; }
+  .bubble .invite-text { font-size: 18px; margin-top: 16px; }
+  .bubble .hint { font-size: 7px; margin-top: 8px; }
+  .bubble .caption {
+    padding: 8px 6px 2px;
+    font-size: 12.5px;
+    color: #e9edef;
+    line-height: 1.45;
+  }
+  .bubble .time { text-align: right; font-size: 10px; color: #8fa89c; padding: 2px 6px 4px; }
+
+  /* ---- the card itself ---- */
+  .card {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    background:
+      radial-gradient(circle at 50% 8%, #2a2723 0%, var(--charcoal) 45%, var(--charcoal-deep) 100%);
+    border: 1px solid #3a362e;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 34px 24px;
+    text-align: center;
+  }
+
+  .card::before, .card::after {
+    content: '';
+    position: absolute;
+    top: 14px; bottom: 14px; left: 14px; right: 14px;
+    border: 1px solid #45412f;
+    pointer-events: none;
+  }
+  .card::after { top: 17px; bottom: 17px; left: 17px; right: 17px; border-color: rgba(198,161,91,0.35); }
+
+  .card .eyebrow { font-size: 11px; }
+
+  .envelope {
+    width: 46%;
+    max-width: 156px;
+    margin-top: 14px;
+    overflow: visible;
+  }
+  /* envelope + seal, drawn as a fine gold line */
+  .envelope .wire {
+    fill: none;
+    stroke: #c6a15b;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .envelope .wire-faint { stroke-opacity: 0.22; }
+
+  .invite-text {
+    color: var(--cream);
+    margin-top: 22px;
+    font-weight: 400;
+    font-style: italic;
+    font-size: 27px;
+    letter-spacing: 0.02em;
+  }
+
+  .hint {
+    color: var(--gold);
+    margin-top: 10px;
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .hint-sub {
+    color: var(--silver);
+    margin-top: 14px;
+    font-size: 10px;
+    letter-spacing: 0.03em;
+    opacity: 0.8;
+  }
+
+  .side {
+    max-width: 420px;
+  }
+  .side h2 { font-weight: 400; color: var(--gold); font-size: 16px; }
+  .side p, .side li { color: var(--silver); font-size: 13px; line-height: 1.7; }
+  .side .msg {
+    background: var(--charcoal);
+    border: 1px solid #33302a;
+    border-radius: 6px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--cream-dim);
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <a href="overview.html">Overview</a>
+    <a href="teaser.html">WhatsApp Teaser</a>
+    <a href="./">Event Page</a>
+    <a href="palette.html">Surface Study</a>
+  </div>
+
+  <div class="note" style="margin-top:24px;">
+    Left: how the card actually lands in a chat thread. Right: the card at full size, plus the
+    message text that would go above it.
+  </div>
+
+  <div class="wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="chat-header">
+          <div class="avatar"></div>
+          Family Group
+        </div>
+        <div class="chat-body">
+          <div class="bubble">
+            <div class="card">
+              <div class="eyebrow">A Celebration of Grace &amp; Life</div>
+              <svg class="envelope" viewBox="0 0 160 120">
+                <rect class="wire" x="6" y="14" width="148" height="100"/>
+                <path class="wire" d="M6 14 L80 74 L154 14"/>
+                <path class="wire wire-faint" d="M6 114 L58 62"/>
+                <path class="wire wire-faint" d="M154 114 L102 62"/>
+                <g transform="translate(80,50) scale(0.3)">
+                  <ellipse class="wire" rx="50" ry="18"/>
+                  <ellipse class="wire" rx="50" ry="18" transform="rotate(60)"/>
+                  <ellipse class="wire" rx="50" ry="18" transform="rotate(120)"/>
+                  <circle class="wire" r="5"/>
+                </g>
+              </svg>
+              <div class="invite-text">You're Invited</div>
+              <div class="hint">Three Blessings &middot; One Celebration</div>
+              <div class="hint-sub">The story unfolds within &darr;</div>
+            </div>
+            <div class="caption">Three milestones, 155 years of grace and blessings. We'd love for you to join us — open to find out for what, and for whom.
+
+🔗 notion.site/…</div>
+            <div class="time">7:42 PM ✓✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="side">
+      <h2>Card, full size</h2>
+      <div class="card">
+              <div class="eyebrow">A Celebration of Grace &amp; Life</div>
+              <svg class="envelope" viewBox="0 0 160 120">
+                <rect class="wire" x="6" y="14" width="148" height="100"/>
+                <path class="wire" d="M6 14 L80 74 L154 14"/>
+                <path class="wire wire-faint" d="M6 114 L58 62"/>
+                <path class="wire wire-faint" d="M154 114 L102 62"/>
+                <g transform="translate(80,50) scale(0.3)">
+                  <ellipse class="wire" rx="50" ry="18"/>
+                  <ellipse class="wire" rx="50" ry="18" transform="rotate(60)"/>
+                  <ellipse class="wire" rx="50" ry="18" transform="rotate(120)"/>
+                  <circle class="wire" r="5"/>
+                </g>
+              </svg>
+              <div class="invite-text">You're Invited</div>
+              <div class="hint">Three Blessings &middot; One Celebration</div>
+              <div class="hint-sub">The story unfolds within &darr;</div>
+            </div>
+            <div class="side" style="margin-top:24px;">
+        <h2>Message text (goes above the image)</h2>
+        <div class="msg">Three milestones, 155 years of grace and blessings. We'd love for you to join us — open to find out for what, and for whom.
+
+🔗 Full details, map &amp; RSVP: notion.site/…</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

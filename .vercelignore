@@ -1,0 +1,8 @@
+# Design sources and loose reference images: they belong in the repo, not on
+# the CDN. Anchored with a leading slash so nothing under demo/assets is
+# caught by these -- the site's own textures and fonts must ship.
+the_pivot/
+/*.jpg
+/*.jpeg
+/*.png
+/*.webp

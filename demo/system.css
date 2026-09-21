@@ -1,0 +1,389 @@
+/* =========================================================================
+   THE SYSTEM  --  bold, tonal, wireframe
+   -------------------------------------------------------------------------
+   Two voices, deliberately different:
+
+     THE SHELL    vanilla cream, lagoon type, rosewood wireframe. Everything
+                  that belongs to the invitation as a whole -- cover,
+                  schedule, itinerary, details, RSVP.
+
+     THE PANELS   one pastel field per person, with the name set enormous
+                  in a DEEPER SHADE OF THAT SAME FIELD. The references are
+                  bold in scale and quiet in contrast; ink that fights its
+                  field turns the whole thing into a poster for a sale.
+
+   Rules that hold everywhere:
+     - two type sizes only, display and micro. Nothing in between except
+       running text, which is rare and short.
+     - micro labels are pinned to edges, never centred under things.
+     - hairlines are 1px at 0.28 alpha of the ink. No borders, no radii,
+       no shadows.
+   ========================================================================= */
+
+@font-face {
+  font-family: 'Bodoni Moda';
+  src: url('assets/fonts/bodoni-moda-var.woff2') format('woff2-variations');
+  font-weight: 400 900;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Archivo';
+  src: url('assets/fonts/archivo-var.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: block;
+}
+
+:root {
+  --display: 'Bodoni Moda', 'Bodoni MT', Didot, 'Times New Roman', serif;
+  --micro: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+
+  /* ---- the six from the palette, named as given ---- */
+  --vanilla:  #fff7e6;
+  --blush:    #f7c8d3;
+  --rosewood: #b46a72;
+  --sage:     #a8b58a;
+  --misty:    #a9b7c6;
+  --lagoon:   #2d3a47;
+
+  /* ---- the shell ---- */
+  --shell:      var(--vanilla);
+  --shell-lift: #f7eedb;   /* one step down, for blocks that sit on the shell */
+  --bone:       var(--lagoon);              /* the shell's ink */
+  --bone-dim:   rgba(45, 58, 71, 0.6);
+  --neon:       var(--rosewood);            /* the shell's accent + wireframe */
+
+  /* ---- the three, each a field + a deeper shade of itself ----
+     The palette gives the fields. The inks are cut from the same hue and
+     dropped far enough to stay legible on it -- a tint as close as the dark
+     scheme used would be unreadable at micro size on a pastel. */
+  --michael-field: var(--blush);   --michael-ink: #97434f;
+  --savio-field:   var(--sage);    --savio-ink:   #4c5931;
+  --orwill-field:  var(--misty);   --orwill-ink:  var(--lagoon);
+}
+
+* { box-sizing: border-box; }
+
+/* every hairline in the system, derived from the ink in force */
+:root, .panel { --hair: color-mix(in srgb, currentColor 26%, transparent); }
+
+body {
+  margin: 0;
+  background: var(--shell);
+  color: var(--bone);
+  font-family: var(--micro);
+  -webkit-font-smoothing: antialiased;
+  /* THE DISPLAY CUT.
+     Bodoni Moda carries an optical-size axis from 6 to 96, and the browser
+     picks a value from the font size on its own -- so at display sizes it
+     was selecting the ~90pt cut, whose hairlines are drawn to almost
+     vanish. Pinning opsz to 20 keeps the same typeface with thins that
+     survive. Inherited from here; Archivo has no opsz axis and ignores it. */
+  font-optical-sizing: none;
+  font-variation-settings: 'opsz' 20;
+}
+
+/* ...and heavier stems to match, everywhere the display face is used.
+   .name and .figure carry their own font-weight further down, so they set
+   500 there rather than here -- same specificity, and the later rule wins. */
+.slant, .ledger-row .what, .data .val { font-weight: 500; }
+
+/* ===================================================== type =========== */
+
+.name {
+  font-family: var(--display);
+  font-weight: 500;
+  line-height: 0.84;
+  letter-spacing: -0.012em;
+  margin: 0;
+  /* the name is the artwork: it fills the panel edge to edge */
+  /* ONE size for every name, not one per name.
+     These were previously sized so each name FILLED its panel, which meant
+     a five-letter name was set far larger than a seven-letter one to cover
+     the same width -- Savio towered over Michael. Across a set of cards the
+     type size has to be the constant and the line length the variable, so
+     this is now a single figure, set to the longest name. */
+  font-size: 27cqw;
+}
+.name--tight { letter-spacing: -0.03em; }
+
+.figure {
+  font-family: var(--display);
+  font-weight: 500;
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+  margin: 0;
+  font-size: 30cqw;
+}
+/* when the figure IS the composition rather than a headline beside copy */
+.figure--fill { font-size: 52cqw; }
+
+.micro {
+  font-family: var(--micro);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  line-height: 1.6;
+  margin: 0;
+}
+.micro--dim { opacity: 0.6; }
+.micro--lead { font-size: 11px; letter-spacing: 0.3em; }
+
+.running {
+  font-family: var(--micro);
+  font-weight: 400;
+  font-size: 13.5px;
+  line-height: 1.75;
+  letter-spacing: 0.01em;
+  opacity: 0.74;
+  max-width: 46ch;
+  margin: 0;
+}
+
+.slant {
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ===================================================== panels ========= */
+
+/* A panel is a container-query context so the name scales to the PANEL,
+   not to the window. That is what lets the same markup be a full-bleed
+   cover and a thumbnail without retuning any sizes. */
+.panel {
+  container-type: inline-size;
+  position: relative;
+  overflow: hidden;
+  background: var(--field);
+  color: var(--ink);
+  /* percentage padding resolves against the panel's own width, so the
+     content box stays a fixed fraction of the panel at every size. That is
+     what makes one cqw figure fill the name identically on a full-bleed
+     card and on a 168px thumbnail. */
+  padding: 6% 7%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* proportional like the padding, so a thumbnail is not mostly gap */
+  gap: 4%;
+}
+.panel > * { position: relative; z-index: 2; }
+/* ...except the wire, which is a layer rather than content. It carries
+   position:absolute of its own, but `.panel > *` outranks a lone class
+   selector, so the layering has to be restated at this specificity. */
+.panel > .wire { position: absolute; z-index: 1; }
+
+.p-michael { --field: var(--michael-field); --ink: var(--michael-ink); }
+.p-savio   { --field: var(--savio-field);   --ink: var(--savio-ink); }
+.p-orwill  { --field: var(--orwill-field);  --ink: var(--orwill-ink); }
+.p-shell   { --field: var(--shell);         --ink: var(--bone); }
+.p-lift    { --field: var(--shell-lift);    --ink: var(--bone); }
+
+.panel--tall { aspect-ratio: 4 / 5; }
+.panel--wide { aspect-ratio: 16 / 9; }
+.panel--card { aspect-ratio: 7 / 5; }
+.panel--band { min-height: 190px; }
+
+/* corner labels: the four-up grammar from the reference */
+.corners {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px 14px;
+  align-items: baseline;
+}
+.corners > :nth-child(even) { text-align: right; }
+/* corner labels run tighter than free-standing ones so a full name holds
+   one line inside a narrow panel */
+.corners .micro { font-size: 9px; letter-spacing: 0.11em; }
+
+/* ===================================================== wireframe ====== */
+
+.wire {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+/* Behind the name, so the letters cross it -- the type always wins.
+   Lighter than it was on the dark scheme: a dark stroke on a pastel field
+   carries much further than a bright one on near-black. */
+.wire--bed { opacity: 0.42; }
+.wire--solo { position: relative; z-index: 1; opacity: 1; }
+
+/* ===================================================== marks ========== */
+
+.rule {
+  border: 0;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.28;
+  margin: 0;
+}
+.rule--heavy { height: 2px; opacity: 0.85; }
+
+/* the tiny tracked caps set on their side, as on the orange card */
+.vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+/* ===================================================== ledger ========= */
+/* The schedule and itinerary are the same object at two densities: a row
+   of [time] [thing] [place] with a dotted leader holding them apart. */
+
+/* its own container, so .what scales to the ledger even off a panel */
+.ledger { display: flex; flex-direction: column; container-type: inline-size; }
+.ledger-row {
+  display: grid;
+  /* proportional, not a fixed 92px: the time column was set for a four-row
+     list at 19px and looked like a caption beside a 60px event name */
+  grid-template-columns: minmax(80px, 15%) 1fr auto;
+  gap: clamp(16px, 2.4cqw, 40px);
+  align-items: baseline;
+  padding: clamp(11px, min(2.6cqw, 2.4vh), 36px) 0;
+  /* hairlines take the ink of whatever they sit on, so one ledger works
+     on the shell and on all three fields */
+  border-top: 1px solid var(--hair);
+}
+.ledger-row:last-child { border-bottom: 1px solid var(--hair); }
+.ledger-row .what {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(24px, min(5.6cqw, 8vh), 64px);
+  line-height: 1.02;
+  letter-spacing: -0.018em;
+}
+/* the time is a figure, so it is set in the figure face rather than in the
+   label face -- it reads as data next to the event, not as a tag on it */
+.ledger-row .when {
+  font-family: var(--display);
+  font-size: clamp(16px, 2.4cqw, 28px);
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.7;
+}
+.ledger-row .where {
+  font-size: clamp(10px, 1.2cqw, 13px);
+  letter-spacing: 0.2em;
+  text-align: right;
+  opacity: 0.62;
+}
+
+/* the staggered variant, for the cover where it is decoration first */
+.ledger--stagger .ledger-row:nth-child(2) { padding-left: 6%; }
+.ledger--stagger .ledger-row:nth-child(3) { padding-left: 12%; }
+
+/* ===================================================== data =========== */
+/* A fact and its label, one per row, held apart by the same hairline the
+   ledger uses. This was a grid of bordered boxes; four panels of chrome
+   around eight words is a lot of furniture for very little, and it did not
+   look like anything else in the system. */
+
+.data { display: flex; flex-direction: column; }
+.data > div {
+  display: grid;
+  grid-template-columns: minmax(96px, 22%) 1fr;
+  gap: clamp(18px, 3.4vw, 64px);
+  align-items: baseline;
+  padding: clamp(12px, min(3.4vw, 4.4vh), 56px) 0;
+  border-top: 1px solid var(--hair);
+}
+.data > div:last-child { border-bottom: 1px solid var(--hair); }
+.data .val {
+  font-family: var(--display);
+  font-weight: 500;
+  font-size: clamp(16px, min(3.4vw, 3.6vh), 44px);
+  line-height: 1.18;
+  letter-spacing: -0.014em;
+  margin: 0;
+}
+
+/* ===================================================== action ========= */
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 17px 26px;
+  background: var(--bone);
+  color: var(--shell);
+  text-decoration: none;
+  font-family: var(--micro);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+.action:hover { background: var(--neon); color: var(--shell); }
+
+/* ===================================================== specimen ======= */
+/* chrome for the design-system page itself, not part of the card */
+
+.sheet { max-width: 1240px; margin: 0 auto; padding: 0 28px 140px; }
+
+.chapter {
+  display: grid;
+  grid-template-columns: 178px 1fr;
+  gap: 30px;
+  align-items: start;
+  padding: 58px 0 0;
+}
+.chapter > .side { position: sticky; top: 26px; }
+.chapter + .chapter { border-top: 1px solid var(--hair); margin-top: 58px; }
+
+.swatch-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.swatch { padding: 18px 16px 20px; display: flex; flex-direction: column; gap: 46px; }
+.swatch .chip { font-family: var(--display); font-size: 40px; line-height: 0.8; }
+
+.trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+@media (max-width: 900px) {
+  .chapter { grid-template-columns: 1fr; gap: 18px; }
+  .chapter > .side { position: static; }
+  .trio, .swatch-row { grid-template-columns: 1fr; }
+}
+
+/* ===================================================== paper ========== */
+/* One sheet of paper laid over the whole window, multiplied into whatever is
+   beneath it. Multiply rather than a plain overlay so the grain darkens each
+   field in its own hue instead of washing the palette grey; fixed and
+   non-repeating so the sheet's vignette reads as one sheet rather than as a
+   tile seam every 1280px.
+
+   WHY IT IS NOW VISIBLE. The first scan was a smooth sheet: its high
+   frequency content -- the fibre, which is the only part the eye reads as
+   paper -- measured a standard deviation of 6 levels, while its average sat
+   at 195. Multiplied at full strength that average turned every field to
+   putty, so it had to run at 0.18, which left about one level of grain. You
+   cannot see one level.
+
+   This scan carries 17 levels of fibre. It is also a dark sheet, so it is
+   inverted, split, and rebuilt: the low frequencies -- the broad tone that
+   muddies colour -- are flattened to near white with a little of the
+   vignette kept, and the high frequencies pass through whole. The result
+   averages 247, so it darkens a field by 3% while carrying 11 levels of
+   grain, an order of magnitude more than before. */
+/* It scrolls with the page. Fixed, the grain sat still while everything slid
+   underneath it, which reads as a dirty screen rather than as paper. So the
+   sheet is absolutely positioned over the whole document and the scan is cut
+   into a seamless tile -- the broad tone is removed entirely, because any
+   vignette left in a tile repeats across the page as a grid of soft blobs. */
+body { position: relative; }
+body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  background: url('assets/paper.jpg?v=3') repeat;
+  background-size: clamp(300px, 34vw, 560px);
+  mix-blend-mode: multiply;
+}
+@media print { body::after { display: none; } }
