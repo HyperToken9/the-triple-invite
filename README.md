@@ -69,7 +69,9 @@ demo/
   wireframe.js    the 3D wireframe marks: flutes, heart, disco ball, rings
   assets/
     fonts/        Bodoni Moda + Archivo, variable, subset to woff2
-    env-paper.jpg the envelope stock; five folds are cut from this one sheet
+    env-paper.jpg the envelope stock; five folds are cut from this one sheet,
+                  and it is held a clear step below the cream so the two
+                  surfaces never read as one
     paper.jpg     the page's grain, a seamless tile
     preview.jpg   1200x630, what the link bubble pulls
     share-*.jpg   the cards you send in the message

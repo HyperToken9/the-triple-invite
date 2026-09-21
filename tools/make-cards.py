@@ -127,6 +127,47 @@ def fit(d, text, path, target, tr=0.0, cap=400):
     return lo
 
 
+
+THREE = (('MICHAEL', '80th Birthday'),
+         ('SAVIO', '50th Birthday'),
+         ('ORWILL & JOVITA', 'Silver Anniversary'))
+
+def trio(d, left, right, y, name_px, occ_px):
+    """Three columns: the name in the micro face, the occasion under it in
+    the display face. Two voices, so the second line reads as the answer to
+    the first rather than more of the same.
+
+    Columns are sized to their contents, not cut into equal thirds --
+    "ORWILL & JOVITA" is twice the name "SAVIO" is, and equal thirds leave
+    one column gasping while the others sit half empty."""
+    inner = right - left
+    gap = inner * 0.078
+
+    def widths(npx, opx):
+        out = []
+        for name, occ in THREE:
+            fn = ImageFont.truetype(ARCHIVO5, npx)
+            tr = npx*0.16
+            wn = sum(d.textlength(c, font=fn) for c in name) + tr*(len(name)-1)
+            wo = d.textlength(occ, font=ImageFont.truetype(BODONI4, opx))
+            out.append(max(wn, wo))
+        return out
+
+    w = widths(name_px, occ_px)
+    over = (sum(w) + 2*gap) / inner
+    if over > 1:                      # shrink both faces together, never one
+        name_px = max(9, int(name_px/over)); occ_px = max(10, int(occ_px/over))
+        w = widths(name_px, occ_px)
+
+    x = left + (inner - sum(w) - 2*gap)/2.0
+    fn = ImageFont.truetype(ARCHIVO5, name_px)
+    fo = ImageFont.truetype(BODONI4, occ_px)
+    for (name, occ), cw in zip(THREE, w):
+        cx = x + cw/2.0
+        track(d, cx, y, name, fn, ROSE, name_px*0.16)
+        centre(d, cx, y + int(name_px*1.62), occ, fo, (86, 98, 112))
+        x += cw + gap
+
 # ---------------------------------------------------------------- the card
 _grain = Image.open(os.path.join(D, 'assets/paper.jpg')).convert('L')
 
@@ -140,9 +181,9 @@ def card(W, H, env_w, layout, path, jpeg=False):
 
     # the envelope's weight on the table
     sh = Image.new('RGBA', (W, H), (0,0,0,0))
-    sh.paste((74,56,36,78), (ex+int(env_w*0.03), ey+int(env_w*0.055),
-                             ex+env_w-int(env_w*0.03), ey+env.height+int(env_w*0.04)))
-    sh = sh.filter(ImageFilter.GaussianBlur(env_w*0.04))
+    sh.paste((74,56,36,96), (ex+int(env_w*0.025), ey+int(env_w*0.045),
+                             ex+env_w-int(env_w*0.025), ey+env.height+int(env_w*0.035)))
+    sh = sh.filter(ImageFilter.GaussianBlur(env_w*0.032))
     im.paste(Image.alpha_composite(im.convert('RGBA'), sh).convert('RGB'), (0,0))
     im.paste(env, (ex, ey), env)
     d = ImageDraw.Draw(im)
@@ -170,9 +211,8 @@ def card(W, H, env_w, layout, path, jpeg=False):
     # the three reasons, so the occasion is never in doubt
     y = layout['who_y']
     d.line([(cx-layout['rule'], y), (cx+layout['rule'], y)], fill=(222,208,186), width=2)
-    f_o = ImageFont.truetype(ARCHIVO5, layout['who'])
-    track(d, cx, y + layout['who']*1.7,
-          "MICHAEL 80   ·   SAVIO 50   ·   ORWILL & JOVITA 25", f_o, ROSE, layout['who']*0.16)
+    trio(d, cx-layout['rule'], cx+layout['rule'], int(y + layout['who']*1.8),
+         layout['who'], layout['occ'])
 
     # the same grain the page wears
     g = np.tile(np.asarray(_grain, np.float32),
@@ -190,17 +230,17 @@ OUT = os.path.join(D, 'assets')
 # so it is the biggest the card can ever render in a chat.
 print(card(1080, 1350, 620, dict(margin=96, env_y=214, eyebrow=30, eyebrow_y=126,
       head=104, head_y=760, head_lead=1.06, foot_y=1010, when=27, where=23,
-      who_y=1176, who=21, rule=300), os.path.join(OUT,'share-chat.jpg'), jpeg=True))
+      who_y=1150, who=21, occ=26, rule=330), os.path.join(OUT,'share-chat.jpg'), jpeg=True))
 
 # 1:1 -- never cropped anywhere: chat, profile, a forwarded post
-print(card(1080, 1080, 496, dict(margin=96, env_y=172, eyebrow=27, eyebrow_y=98,
-      head=86, head_y=620, head_lead=1.06, foot_y=866, when=25, where=21,
-      who_y=976, who=20, rule=270), os.path.join(OUT,'share-square.jpg'), jpeg=True))
+print(card(1080, 1080, 466, dict(margin=96, env_y=150, eyebrow=27, eyebrow_y=90,
+      head=84, head_y=566, head_lead=1.06, foot_y=806, when=25, where=21,
+      who_y=922,  who=19, occ=24, rule=318), os.path.join(OUT,'share-square.jpg'), jpeg=True))
 
 # 9:16 -- Status
 print(card(1080, 1920, 640, dict(margin=110, env_y=372, eyebrow=32, eyebrow_y=250,
       head=110, head_y=960, head_lead=1.06, foot_y=1240, when=29, where=25,
-      who_y=1400, who=23, rule=320), os.path.join(OUT,'share-status.jpg'), jpeg=True))
+      who_y=1372, who=22, occ=28, rule=360), os.path.join(OUT,'share-status.jpg'), jpeg=True))
 
 
 # ------------------------------------------------- the link preview, 1.91:1
@@ -210,7 +250,7 @@ def wide(path):
     im = Image.new('RGB', (W, H), VANILLA)
     env_w = 330
     env = envelope(env_w)
-    ex, ey = 96, (H - env.height)//2
+    ex, ey = 96, (H - env.height)//2 + 26
     sh = Image.new('RGBA', (W, H), (0,0,0,0))
     sh.paste((74,56,36,78), (ex+10, ey+18, ex+env_w-10, ey+env.height+14))
     sh = sh.filter(ImageFilter.GaussianBlur(env_w*0.04))
@@ -240,9 +280,8 @@ def wide(path):
     f_p = ImageFont.truetype(ARCHIVO5, 21)
     ltrack(426, 'DON BOSCO SHRINE', f_p, (120,130,140), 21*0.22)
 
-    d.line([(x, 486), (right, 486)], fill=(222,208,186), width=2)
-    f_o = ImageFont.truetype(ARCHIVO5, 19)
-    ltrack(516, 'MICHAEL 80   ·   SAVIO 50   ·   ORWILL & JOVITA 25', f_o, ROSE, 19*0.16)
+    d.line([(x, 480), (right, 480)], fill=(222,208,186), width=2)
+    trio(d, x, right, 512, 18, 21)
 
     g = np.tile(np.asarray(_grain, np.float32),
                 (H//_grain.height+1, W//_grain.width+1))[:H, :W]
