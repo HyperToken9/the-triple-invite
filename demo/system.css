@@ -213,7 +213,9 @@ body {
 /* Behind the name, so the letters cross it -- the type always wins.
    Lighter than it was on the dark scheme: a dark stroke on a pastel field
    carries much further than a bright one on near-black. */
-.wire--bed { opacity: 0.42; }
+/* full strength: the depth shading in Wire is what keeps beds behind the
+   type, and a canvas-wide fade flattened the crossings */
+.wire--bed { opacity: 1; }
 .wire--solo { position: relative; z-index: 1; opacity: 1; }
 
 /* ===================================================== marks ========== */

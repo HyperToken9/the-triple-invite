@@ -203,10 +203,10 @@ def card(W, H, env_w, layout, path, jpeg=False):
 
     y = layout['foot_y']
     f_w = ImageFont.truetype(ARCHIVO, layout['when'])
-    track(d, cx, y, 'SATURDAY 29 NOVEMBER', f_w, LAGOON, layout['when']*0.24)
+    track(d, cx, y, 'TUESDAY 17 NOVEMBER 2026', f_w, LAGOON, layout['when']*0.24)
     y += int(layout['when']*2.0)
     f_p = ImageFont.truetype(ARCHIVO5, layout['where'])
-    track(d, cx, y, 'DON BOSCO SHRINE', f_p, (120,130,140), layout['where']*0.22)
+    track(d, cx, y, 'DON BOSCO SHRINE, MATUNGA  ·  SOFITEL HOTEL, BKC', f_p, (120,130,140), layout['where']*0.22)
 
     # the three reasons, so the occasion is never in doubt
     y = layout['who_y']
@@ -276,9 +276,10 @@ def wide(path):
         y += int(size*1.08)
 
     f_w = ImageFont.truetype(ARCHIVO, 24)
-    ltrack(378, 'SATURDAY 29 NOVEMBER', f_w, LAGOON, 24*0.24)
-    f_p = ImageFont.truetype(ARCHIVO5, 21)
-    ltrack(426, 'DON BOSCO SHRINE', f_p, (120,130,140), 21*0.22)
+    ltrack(378, 'TUESDAY 17 NOVEMBER 2026', f_w, LAGOON, 24*0.24)
+    f_p = ImageFont.truetype(ARCHIVO5, 18)   # two venues, one per line
+    ltrack(418, 'MASS  ·  DON BOSCO SHRINE, MATUNGA', f_p, (120,130,140), 18*0.22)
+    ltrack(446, 'DINNER  ·  SOFITEL HOTEL, BKC', f_p, (120,130,140), 18*0.22)
 
     d.line([(x, 480), (right, 480)], fill=(222,208,186), width=2)
     trio(d, x, right, 512, 18, 21)

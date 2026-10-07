@@ -18,14 +18,14 @@
 <meta property="og:url" content="https://the-triple-invite.vercel.app/">
 <meta property="og:title" content="You are invited — Thanksgiving Mass &amp; Dinner">
 <meta property="og:description"
-      content="Michael's 80th · Savio's 50th · Orwill &amp; Jovita's Silver. Saturday 29 November, Don Bosco Shrine.">
+      content="Michael's 80th · Savio's 50th · Orwill &amp; Jovita's Silver. Tuesday 17 November 2026. Mass at Don Bosco Shrine, Matunga; dinner at Sofitel Hotel, BKC.">
 <meta property="og:image" content="https://the-triple-invite.vercel.app/assets/preview.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="theme-color" content="#fff7e6">
 
-<link rel="stylesheet" href="system.css?v=22">
+<link rel="stylesheet" href="system.css?v=26">
 <style>
   /* page layout only -- the components all come from system.css */
 
@@ -177,12 +177,14 @@
   /* ---- and then the page writes itself in -------------------------------
      Added by the script only, so a reader without JS, or one who asked for
      reduced motion, gets the page whole and immediately. */
+  html.gate-hold .cover .epigraph,
   html.gate-hold .cover .invite .eyebrow,
   html.gate-hold .cover .invite .w1,
   html.gate-hold .cover .invite .w2,
   html.gate-hold .cover .particulars,
   html.gate-hold .cover-art { opacity: 0; transform: translateY(18px); }
 
+  html.gate-pop .cover .epigraph,
   html.gate-pop .cover .invite .eyebrow,
   html.gate-pop .cover .invite .w1,
   html.gate-pop .cover .invite .w2,
@@ -192,9 +194,10 @@
     transition: opacity 0.8s ease, transform 0.9s cubic-bezier(.16,1,.3,1);
   }
   html.gate-pop .cover-art          { transition-delay: 0.14s; }
-  html.gate-pop .cover .invite .w1  { transition-delay: 0.10s; }
-  html.gate-pop .cover .invite .w2  { transition-delay: 0.20s; }
-  html.gate-pop .cover .particulars { transition-delay: 0.34s; }
+  html.gate-pop .cover .invite .eyebrow { transition-delay: 0.08s; }
+  html.gate-pop .cover .invite .w1  { transition-delay: 0.16s; }
+  html.gate-pop .cover .invite .w2  { transition-delay: 0.26s; }
+  html.gate-pop .cover .particulars { transition-delay: 0.40s; }
 
   @media (max-width: 860px) {
     .env-part { width: min(80vw, 50vh, 430px); }
@@ -271,6 +274,16 @@
     font-size: clamp(11px, min(1.3vw, 1.7vh), 16px);
     letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.62;
   }
+  /* the venues open their map: underlined, with an arrow, so a guest knows
+     to tap it -- the address itself lives behind the link */
+  a.where {
+    display: inline-block; color: inherit;
+    text-decoration: underline; text-decoration-thickness: 1px;
+    text-underline-offset: 0.45em;
+    transition: opacity 0.2s ease;
+  }
+  a.where::after { content: ' \2197'; letter-spacing: 0; }
+  a.where:hover, a.where:focus-visible { opacity: 1; }
 
   /* ---- the reply: the instruction IS the page --------------------------- */
   .reply-line {
@@ -343,6 +356,31 @@
     display: flex; flex-direction: column; align-items: flex-start;
   }
 
+  /* 0. the epigraph. Quiet on purpose: italic, the body colour knocked
+     back, a short hairline and the source in micro caps -- the opening of a
+     book, so the slab headline below is still the loudest thing on the page. */
+  .cover .epigraph { margin: 0 0 var(--s4); max-width: none; }
+  .cover .epigraph blockquote {
+    margin: 0;
+    font-family: var(--display); font-style: italic; font-weight: 400;
+    font-size: clamp(21px, 4.4cqw, 50px);
+    line-height: 1.22; letter-spacing: -0.01em;
+    opacity: 0.85;
+  }
+  .cover .epigraph blockquote::before { content: '\201C'; }
+  .cover .epigraph blockquote::after  { content: '\201D'; }
+  .cover .epigraph figcaption {
+    display: flex; align-items: center; gap: 0.9em;
+    margin-top: var(--s2);
+    font-family: var(--micro); font-weight: 500;
+    font-size: clamp(10px, 1.6cqw, 16px);
+    letter-spacing: 0.24em; text-transform: uppercase;
+    opacity: 0.55;
+  }
+  .cover .epigraph figcaption::before {
+    content: ''; width: 2.6em; height: 1px; background: currentColor;
+  }
+
   /* 1 + 2. the invitation. No connectives, set in caps, a wall of type --
      the words break across lines because that IS the composition. */
   .cover .eyebrow {
@@ -378,9 +416,8 @@
     font-variation-settings: 'opsz' 72;
   }
 
-  /* 3. the particulars. The date is the one fact people act on, so it is
-     set at display size on its own row; the two places are the same kind of
-     fact as each other and share the row beneath it. */
+  /* 3. the particulars: just the date, the one fact people act on, at
+     display size. Where and when each part happens is on The Day. */
   .cover .particulars {
     display: flex; flex-direction: column; gap: var(--s3);
     margin: var(--s4) 0 0; padding: var(--s3) 0 0;
@@ -398,11 +435,6 @@
     line-height: 1.2; letter-spacing: -0.012em;
   }
   .cover .when dd { font-size: clamp(30px, 5.6cqw, 62px); }
-  .cover .places {
-    display: grid; gap: var(--s2) clamp(26px, 4cqw, 56px);
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  }
-  .cover .places dd { font-size: clamp(18px, 2.8cqw, 32px); }
 
   /* the paper grain is multiplied over the type too, so a hairline highlight
      under each stroke is what makes the display words sit IN the sheet
@@ -425,7 +457,7 @@
 
   /* end to end: the canvas is the whole right column, top edge to bottom */
   .cover-art { position: relative; z-index: 1; align-self: stretch; }
-  .cover-art .wire { opacity: 0.8; }
+  .cover-art .wire { opacity: 1; }
 
   /* ---- the three, one screen each ----------------------------------------
      No section head and no caption above the card: each person IS the screen,
@@ -526,7 +558,8 @@
     .cover .invite .w1, .cover .invite .w2 { overflow-wrap: break-word; }
     .cover .invite .eyebrow { margin-bottom: clamp(16px, min(4.6cqw, 4vh), 44px); }
     .cover .particulars { text-align: center; }
-    .cover .places { justify-items: center; }
+    .cover .epigraph { margin-bottom: clamp(18px, 4vh, 34px); }
+    .cover .epigraph figcaption { justify-content: center; }
 
     .solo .panel { padding: 8% 7%; align-items: center; text-align: center; }
     .person-body { text-align: center; }
@@ -661,7 +694,6 @@
   <a href="#savio"><span class="lbl">Savio</span><span class="tick"></span></a>
   <a href="#orwill"><span class="lbl">Orwill &amp; Jovita</span><span class="tick"></span></a>
   <a href="#day"><span class="lbl">The Day</span><span class="tick"></span></a>
-  <a href="#details"><span class="lbl">Details</span><span class="tick"></span></a>
   <a href="#reply"><span class="lbl">Kindly Reply</span><span class="tick"></span></a>
 </nav>
 
@@ -670,8 +702,13 @@
   <div class="cover">
 
     <div class="cover-copy">
+      <figure class="epigraph">
+        <blockquote>Gratitude unlocks the fullness of life.<br>It turns what we have into enough, and more.</blockquote>
+        <figcaption>Melody Beattie</figcaption>
+      </figure>
+
       <div class="invite">
-        <p class="eyebrow">You are invited to</p>
+        <p class="eyebrow">You are invited to a</p>
         <p class="w1">Thanksgiving Mass</p>
         <p class="w2">Dinner</p>
       </div>
@@ -679,17 +716,7 @@
       <dl class="particulars">
         <div class="when">
           <dt>When</dt>
-          <dd>Saturday 29 November</dd>
-        </div>
-        <div class="places">
-          <div>
-            <dt>Mass</dt>
-            <dd>Don Bosco Shrine</dd>
-          </div>
-          <div>
-            <dt>Reception</dt>
-            <dd>[Venue] · [Time]</dd>
-          </div>
+          <dd>Tuesday 17 November 2026</dd>
         </div>
       </dl>
     </div>
@@ -724,7 +751,7 @@
             data-speed="1" data-fill="1"></canvas>
     <div class="person-body">
       <p class="name name--tight">Savio</p>
-      <p class="punch">Still flying his own way.</p>
+      <p class="punch">Still flying high, his own way.</p>
       <div class="footrow">
         <span class="milestone">50th Birthday</span>
         <span class="roles">Free bird · Fifty years</span>
@@ -740,7 +767,7 @@
             data-speed="0.55" data-fill="1"></canvas>
     <div class="person-body">
       <p class="name name--tight">Orwill &amp; Jovita</p>
-      <p class="punch">Twenty-five years of being there.</p>
+      <p class="punch">Love makes all things easy.</p>
       <div class="footrow">
         <span class="milestone">Silver Anniversary</span>
         <span class="roles">Partners · Parents · Providers</span>
@@ -753,23 +780,22 @@
 <!-- ============================================ THE DAY -->
 <section class="screen screen--sheet" id="day">
   <p class="mast">
-    <span class="n">01</span>
     <span class="t">The Day</span>
-    <span class="d">Saturday 29 November</span>
+    <span class="d">Tuesday 17 November 2026</span>
   </p>
 
   <div class="sheet-body">
     <div class="events">
       <div class="event">
-        <span class="when">[Time]</span>
+        <span class="when">6:00 pm</span>
         <span class="what">Thanksgiving Mass</span>
-        <span class="where">Don Bosco Shrine</span>
+        <a class="where" href="https://maps.app.goo.gl/kP7Xju3m9K1YnD5R6" target="_blank" rel="noopener">Don Bosco Shrine, Matunga</a>
       </div>
       <span class="split" aria-hidden="true"></span>
       <div class="event">
-        <span class="when">[Time]</span>
+        <span class="when">8:00 pm</span>
         <span class="what">Dinner</span>
-        <span class="where">[Venue]</span>
+        <a class="where" href="https://maps.app.goo.gl/nDtqRrFLGUmT8ZX29" target="_blank" rel="noopener">Sofitel Hotel, BKC</a>
       </div>
     </div>
   </div>
@@ -779,46 +805,16 @@
   </p>
 </section>
 
-<!-- ============================================ DETAILS -->
-<section class="screen screen--sheet" id="details">
-  <p class="mast">
-    <span class="n">02</span>
-    <span class="t">Details</span>
-  </p>
-
-  <div class="sheet-body">
-    <div class="data">
-      <div>
-        <p class="micro micro--dim">Date</p>
-        <p class="val">Saturday 29 November</p>
-      </div>
-      <div>
-        <p class="micro micro--dim">Mass</p>
-        <p class="val">Don Bosco Shrine, [Address]</p>
-      </div>
-      <div>
-        <p class="micro micro--dim">Reception</p>
-        <p class="val">[Venue], [Address]</p>
-      </div>
-      <div>
-        <p class="micro micro--dim">Dress</p>
-        <p class="val">Semi-formal, festive</p>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ============================================ RSVP -->
 <section class="screen screen--sheet" id="reply">
   <p class="mast">
-    <span class="n">03</span>
     <span class="t">Kindly Reply</span>
   </p>
 
   <div class="sheet-body">
     <p class="reply-line">
       RSVP to Jovita Saldanha
-      <span class="by">by [date]</span>
+      <span class="by">by 1st November 2026</span>
     </p>
   </div>
 
@@ -827,7 +823,7 @@
   </p>
 </section>
 
-<script src="wireframe.js?v=7"></script>
+<script src="wireframe.js?v=19"></script>
 <script>
 /* ---- the envelope ------------------------------------------------------
    The envelope settles -> the flap falls back -> a blank card rises out of
@@ -850,7 +846,19 @@
   var cover = document.querySelector('.cover');
   if (!gate || !card || !back || !cover) return;
 
-  var deep = location.hash && location.hash !== '#invitation';
+  /* A refresh is a fresh start: the envelope plays and the reader lands on
+     the first page, wherever they were. Left alone, the browser restores
+     the old scroll position AFTER this script has run, so the card would
+     open over one page and the gate lift on another. Only a link that
+     arrives with a section in it (and is not a reload) goes straight there. */
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  var nav = window.performance && performance.getEntriesByType
+            && performance.getEntriesByType('navigation')[0];
+  var reload = !!nav && nav.type === 'reload';
+  if (reload && location.hash) {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  var deep = !reload && location.hash && location.hash !== '#invitation';
   var still = window.matchMedia &&
               window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (deep || still) return;
@@ -899,7 +907,15 @@
   /* the card is taken away at the moment it is indistinguishable from the
      hero card underneath it, and the backdrop fades, which is what brings
      the paper grain up with it */
+  function top() {
+    var sb = root.style.scrollBehavior;
+    root.style.scrollBehavior = 'auto';
+    window.scrollTo(0, 0);
+    root.style.scrollBehavior = sb;
+  }
+
   function land() {
+    top();                             /* in case anything moved it since */
     gate.classList.add('gone');
     root.classList.remove('gate-on');
     at(340, pop);
@@ -911,6 +927,7 @@
     finished = true;
     timers.forEach(clearTimeout);
     timers = [];
+    top();
     if (gate.parentNode) gate.parentNode.removeChild(gate);
     root.classList.remove('gate-on');
     pop();

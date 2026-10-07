@@ -63,7 +63,25 @@
                    (i * 7.13 + j * 3.77) % TAU]);
       }
     }
-    return { lines: lines, dots: dots, twinkle: true };
+    /* Mirror tiles: one per grid cell. The caps at the poles are
+       triangles, not mirrors, and are left out. */
+    var tiles = [], SUB = 4, k;
+    var onBall = function (la, lo) {
+      return [Math.sin(la) * Math.cos(lo), Math.cos(la), Math.sin(la) * Math.sin(lo)];
+    };
+    for (i = 1; i < LAT - 1; i++) {
+      for (j = 0; j < LON; j++) {
+        /* the whole cell, edge to edge, with its top and bottom edges
+           following the latitude rings round rather than cutting across */
+        var la0 = Math.PI * i / LAT, la1 = Math.PI * (i + 1) / LAT;
+        var lo0 = TAU * j / LON,     lo1 = TAU * (j + 1) / LON;
+        var q = [];
+        for (k = 0; k <= SUB; k++) q.push(onBall(la0, lo0 + (lo1 - lo0) * k / SUB));
+        for (k = 0; k <= SUB; k++) q.push(onBall(la1, lo1 - (lo1 - lo0) * k / SUB));
+        tiles.push({ q: q, ph: ((i * 13.7 + j * 5.31) % 1 + 1) % 1 });
+      }
+    }
+    return { lines: lines, dots: dots, tiles: tiles, twinkle: true };
   }
 
   /* Heart: the classic heart curve as a silhouette, inflated in z.
@@ -206,7 +224,11 @@
       /* One catch of light, on the table. Sparkling every girdle corner as
          well turned the stone into a small disco ball of its own, which is
          the job of the other panel. */
-      dots.push(gemPt(pTable, 0, 0).concat([0]));
+      dots.push(gemPt(pTable, 0, 0).concat([0, 1.0]));
+      /* ...but one lone glint reads as a lighthouse. Two smaller ones off
+         the stone, out of step with it, so the light moves. */
+      dots.push(gemPt(pTable + 0.07, rg * 1.9, -rg * 0.6).concat([2, 0.6]));
+      dots.push(gemPt(pTable + 0.03, -rg * 2.1, rg * 0.9).concat([5, 0.45]));
     }
     return { lines: lines, dots: dots };
   }
@@ -273,9 +295,15 @@
     /* foot, a long stem, then the bowl flaring and tucking back in at the
        rim -- that tuck is what makes it a flute rather than a cone */
     var P = [
-      [0.00, 0.30, 1],   // foot
-      [0.03, 0.29, 0],
-      [0.05, 0.09, 0],
+      [0.0120, 0.3000, 1],   // foot: rolls over the rim, then eases into the stem
+      [0.0180, 0.2984, 0],
+      [0.0224, 0.2940, 0],
+      [0.0240, 0.2880, 0],
+      [0.0264, 0.2313, 0],
+      [0.0309, 0.1800, 0],
+      [0.0375, 0.1340, 0],
+      [0.0462, 0.0933, 0],
+      [0.0571, 0.0580, 0],
       [0.07, 0.028, 1],  // stem
       [0.46, 0.026, 0],
       [0.52, 0.050, 0],
@@ -391,6 +419,11 @@
        1 seats the sphere inside the canvas with a margin; the cover pushes
        past it so the flutes run to the edges. */
     var fill = opt.fill == null ? 1 : opt.fill;
+    /* How faint the drawing sits on its field. This is done stroke by
+       stroke rather than with CSS opacity on the canvas: crossings then
+       build up darker, as ink does, and the flashes and glints can still
+       land at full strength over the faded lines. */
+    var ink = opt.ink == null ? 1 : opt.ink;
     /* at fill 1 every mark averages the same 78% of the canvas's short side,
        whatever shape it is. The second term is the guard: if the widest pose
        in the turn would then run past the canvas, the whole mark is stepped
@@ -432,11 +465,27 @@
     var segs = [];                                    // reused, not reallocated
     var paths = [];
 
+    /* a four-pointed star of tapered rays: on the axes, or the diagonals */
+    function star(x, y, L, wd, diag) {
+      var c = diag ? Math.SQRT1_2 : 1, sn = diag ? Math.SQRT1_2 : 0, r;
+      ctx.beginPath();
+      for (r = 0; r < 4; r++) {
+        var ux = r === 0 ? c : r === 1 ? -sn : r === 2 ? -c : sn;
+        var uy = r === 0 ? sn : r === 1 ? c : r === 2 ? -sn : -c;
+        ctx.moveTo(x + ux * L, y + uy * L);
+        ctx.lineTo(x - uy * wd, y + ux * wd);
+        ctx.lineTo(x + uy * wd, y - ux * wd);
+        ctx.closePath();
+      }
+      ctx.fill();
+    }
+
     function draw(yaw, pitch, t) {
       ctx.clearRect(0, 0, w, h);
       var cx = w / 2, cy = h / 2;
       var scale = Math.min(w, h) * unit * fill;
       var i, j, b, pts, prev, cur, depth;
+
 
       if (mesh.pulse) scale *= 1 + 0.055 * beat(t);
       if (mesh.tiltX) pitch += mesh.tiltX;
@@ -444,6 +493,39 @@
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       ctx.strokeStyle = color;
+
+      if (mesh.tiles) {
+        /* A disco ball is lit by its tiles, not its seams. Each tile runs
+           its own clock, offset by its phase, and on each of its beats a
+           hash decides whether it catches the light -- so a different
+           handful flares every moment, quick on and a slow fade off.
+           Only tiles facing us take part. They light in the ball's own ink,
+           not white: a mirror catching the light reads as a darker flash
+           on this pale field. */
+        ctx.fillStyle = color;
+        for (i = 0; i < mesh.tiles.length; i++) {
+          var tl = mesh.tiles[i];
+          var tc = t * 0.42 + tl.ph;                  // one beat every ~2.4s
+          var tshot = Math.floor(tc);
+          if ((((i * 2654435761) ^ (tshot * 40503)) >>> 5) % 100 >= 21) continue;
+          var tu = tc - tshot;
+          var glow = tu < 0.12 ? tu / 0.12 : Math.pow(1 - (tu - 0.12) / 0.88, 1.6);
+          var poly = [], face = 0, k;
+          for (k = 0; k < tl.q.length; k++) {
+            poly.push(project(tl.q[k], yaw, pitch, cx, cy, scale));
+            face += poly[k][2];
+          }
+          face /= tl.q.length;                        // ~1 facing us
+          if (face < 0.2) continue;
+          ctx.globalAlpha = 0.34 * glow * (0.35 + 0.65 * face);
+          ctx.beginPath();
+          ctx.moveTo(poly[0][0], poly[0][1]);
+          for (k = 1; k < poly.length; k++) ctx.lineTo(poly[k][0], poly[k][1]);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+      }
 
       if (mesh.occlude) {
         /* Two linked bands only read as linked if the near one visibly cuts
@@ -477,21 +559,21 @@
         for (b = 0; b < CHUNKS; b++) {
           from = b * per; to = Math.min(segs.length, from + per);
           if (from >= to) break;
-          var halo = new Path2D(), ink = new Path2D();
+          var halo = new Path2D(), inkPath = new Path2D();
           for (i = from; i < to; i++) {
             var sg = segs[i];
             halo.moveTo(sg[0], sg[1]); halo.lineTo(sg[2], sg[3]);
-            ink.moveTo(sg[0], sg[1]);  ink.lineTo(sg[2], sg[3]);
+            inkPath.moveTo(sg[0], sg[1]);  inkPath.lineTo(sg[2], sg[3]);
           }
           depth = (segs[to - 1][4] + 1) / 2;
           ctx.globalAlpha = 1;
           ctx.strokeStyle = bg;
           ctx.lineWidth = 4.2;
           ctx.stroke(halo);
-          ctx.globalAlpha = 0.34 + 0.66 * depth;
+          ctx.globalAlpha = ink * (0.34 + 0.66 * depth);
           ctx.strokeStyle = color;
           ctx.lineWidth = 0.7 + 0.8 * depth;
-          ctx.stroke(ink);
+          ctx.stroke(inkPath);
         }
       } else {
 
@@ -517,7 +599,7 @@
       }
       for (b = 0; b < BANDS; b++) {
         depth = (b + 0.5) / BANDS;
-        ctx.globalAlpha = 0.20 + 0.78 * depth;
+        ctx.globalAlpha = ink * (0.20 + 0.78 * depth);
         ctx.lineWidth = 0.55 + 0.75 * depth;
         ctx.stroke(paths[b]);
       }
@@ -532,6 +614,27 @@
           var base = 0.18 + 0.7 * depth;
           var rad = 1.05 + 0.5 * depth;
 
+          if (mesh.flashAll) {
+            /* The stone's glints. Each is invisible at rest and, on its own
+               clock, flares into a four-point star -- long tapered rays on
+               the axes, short ones on the diagonals -- and is gone again.
+               The rays TAPER, which is what makes it read as a twinkle; a
+               dot that only swells and shrinks just reads as a pulse. */
+            var gc = t * 0.5 + d[3] / TAU;
+            var gu = gc - Math.floor(gc);
+            var gl = gu < 0.3 ? Math.pow(Math.sin(Math.PI * gu / 0.3), 2) : 0;
+            gl *= 0.55 + 0.45 * depth;
+            if (gl < 0.02) continue;
+            var S = (d[4] || 1) * (9 + 20 * gl);
+            ctx.globalAlpha = Math.min(1, 1.3 * gl);
+            star(cur[0], cur[1], S, S * 0.09);
+            star(cur[0], cur[1], S * 0.45, S * 0.06, true);
+            ctx.beginPath();
+            ctx.arc(cur[0], cur[1], 1 + 1.2 * gl, 0, TAU);
+            ctx.fill();
+            continue;
+          }
+
           if (mesh.twinkle) {
             /* Not a per-stud shimmer -- a BALL-WIDE flash, one and a half
                times a second. `env` is the burst envelope, sharp enough to
@@ -542,32 +645,24 @@
             var shot = Math.floor(cyc);
             var env = Math.pow(Math.max(0, Math.sin(Math.PI * (cyc - shot))), 3);
             /* A tenth of the studs per burst, not a third: the ball should
-               catch the light, not strobe. `flashAll` is for the shapes whose
-               dots are a handful of deliberate sparkles rather than a field
-               of them -- the stone on the ring. */
-            var pick = mesh.flashAll
-              || ((((i * 1103515245) ^ (shot * 12345)) >>> 4) % 100 < 10);
+               catch the light, not strobe. */
+            var pick = (((i * 1103515245) ^ (shot * 12345)) >>> 4) % 100 < 10;
             var f = pick ? env * depth : 0;
 
-            base = Math.min(1, base + 1.1 * f);
-            rad += 2.6 * f;
+            base = Math.min(1, base + 0.6 * f);
+            rad += 0.5 * f;
 
-            if (f > 0.12) {                           // a cross of light
-              ctx.globalAlpha = 0.85 * f;
-              ctx.strokeStyle = color;
-              ctx.lineWidth = 0.9;
-              var L = 4 + 13 * f;
-              ctx.beginPath();
-              ctx.moveTo(cur[0] - L, cur[1]); ctx.lineTo(cur[0] + L, cur[1]);
-              ctx.moveTo(cur[0], cur[1] - L); ctx.lineTo(cur[0], cur[1] + L);
-              ctx.stroke();
-              ctx.globalAlpha = 0.20 * f;             // and a soft halo
-              ctx.beginPath();
-              ctx.arc(cur[0], cur[1], rad + 4 + 7 * f, 0, TAU);
-              ctx.fill();
+            if (f > 0.08) {
+              /* A star, not a swelling dot: tapered rays on the axes and
+                 shorter ones on the diagonals, the same glint as the
+                 stone on the ring. The stud itself barely grows. */
+              var L = 6 + 16 * f;
+              ctx.globalAlpha = Math.min(1, 1.2 * f);
+              star(cur[0], cur[1], L, L * 0.09);
+              star(cur[0], cur[1], L * 0.45, L * 0.06, true);
             }
           }
-          ctx.globalAlpha = base;
+          ctx.globalAlpha = ink * base;
           ctx.beginPath();
           ctx.arc(cur[0], cur[1], rad, 0, TAU);
           ctx.fill();
@@ -626,7 +721,10 @@
         color: els[i].getAttribute('data-color') || '#fff',
         speed: parseFloat(els[i].getAttribute('data-speed') || '1'),
         fill: parseFloat(els[i].getAttribute('data-fill') || '1'),
-        bg: els[i].getAttribute('data-bg') || null
+        bg: els[i].getAttribute('data-bg') || null,
+        ink: els[i].hasAttribute('data-ink')
+          ? parseFloat(els[i].getAttribute('data-ink'))
+          : 1
       });
     }
   }

@@ -2,7 +2,7 @@
 
 A single-page invitation to one evening with three reasons: Michael's 80th,
 Savio's 50th, and Orwill & Jovita's Silver. Thanksgiving Mass at Don Bosco
-Shrine, Saturday 29 November, dinner after.
+Shrine, Matunga at 6:00 pm, Tuesday 17 November 2026, dinner at Sofitel Hotel, BKC at 8:00 pm.
 
 Static HTML, CSS and one script. No build step, no framework, no runtime
 dependency on anything remote — the fonts, the textures and the wireframe
@@ -97,8 +97,8 @@ paper textures will not load over `file://`.
 
 ## Still to fill in
 
-`demo/index.html` carries placeholders in square brackets — `[Time]`,
-`[Venue]`, `[Address]`, `[date]`. Search for `[` to find them all.
+Nothing — every placeholder has been filled. The venues link to their maps
+on The Day page; RSVP is by 1st November 2026.
 
 The RSVP contact is spelled **Jovita Saldanha**; that spelling has not been
 confirmed.
