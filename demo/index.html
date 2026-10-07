@@ -285,6 +285,23 @@
   a.where::after { content: ' \2197'; letter-spacing: 0; }
   a.where:hover, a.where:focus-visible { opacity: 1; }
 
+  /* ---- milestones: the turn from the invitation to the three of them ----
+     One line, set soft -- lowercase italic, the voice of the epigraph rather
+     than the slab of the headline -- with fireworks going up behind it. */
+  .milestones { position: relative; }
+  .fireworks {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none;
+  }
+  .milestones .sheet-body { position: relative; z-index: 1; }
+  .ms-head {
+    font-family: var(--display); font-style: italic; font-weight: 400;
+    margin: 0; text-align: center;
+    font-size: clamp(40px, min(9vw, 12vh), 138px);
+    line-height: 1.02; letter-spacing: -0.02em;
+  }
+  .ms-dots { letter-spacing: 0; }
+
   /* ---- the reply: the instruction IS the page --------------------------- */
   .reply-line {
     font-family: var(--display); font-weight: 500; margin: 0;
@@ -359,7 +376,7 @@
   /* 0. the epigraph. Quiet on purpose: italic, the body colour knocked
      back, a short hairline and the source in micro caps -- the opening of a
      book, so the slab headline below is still the loudest thing on the page. */
-  .cover .epigraph { margin: 0 0 var(--s4); max-width: none; }
+  .cover .epigraph { margin: 0 0 clamp(48px, 7.5cqw, 104px); max-width: none; }
   .cover .epigraph blockquote {
     margin: 0;
     font-family: var(--display); font-style: italic; font-weight: 400;
@@ -558,7 +575,7 @@
     .cover .invite .w1, .cover .invite .w2 { overflow-wrap: break-word; }
     .cover .invite .eyebrow { margin-bottom: clamp(16px, min(4.6cqw, 4vh), 44px); }
     .cover .particulars { text-align: center; }
-    .cover .epigraph { margin-bottom: clamp(18px, 4vh, 34px); }
+    .cover .epigraph { margin-bottom: clamp(36px, 7.5vh, 72px); }
     .cover .epigraph figcaption { justify-content: center; }
 
     .solo .panel { padding: 8% 7%; align-items: center; text-align: center; }
@@ -567,6 +584,10 @@
 
     .events { grid-template-columns: 1fr; gap: clamp(26px, 5vh, 48px); }
     .events .split { height: 1px; align-self: auto; }
+    /* dead centre sits low on a tall phone -- the eye reads the middle of
+       a screen as a little above it -- so the body is centred in a box
+       weighted toward the bottom, which lifts it without pinning it */
+    .sheet-body { padding: clamp(8px, 2vh, 20px) 0 clamp(60px, 14vh, 140px); }
     .data > div { grid-template-columns: 1fr; gap: 6px; justify-items: center; }
   }
 </style>
@@ -690,6 +711,7 @@
 
 <nav class="rail" aria-label="Sections of this invitation">
   <a href="#invitation"><span class="lbl">Invitation</span><span class="tick"></span></a>
+  <a href="#milestones"><span class="lbl">Milestones</span><span class="tick"></span></a>
   <a href="#michael"><span class="lbl">Michael</span><span class="tick"></span></a>
   <a href="#savio"><span class="lbl">Savio</span><span class="tick"></span></a>
   <a href="#orwill"><span class="lbl">Orwill &amp; Jovita</span><span class="tick"></span></a>
@@ -729,6 +751,14 @@
 </section>
 
 <!-- ============================================ THOSE WE CELEBRATE, ONE EACH -->
+<!-- ============================================ MILESTONES -->
+<section class="screen screen--sheet milestones" id="milestones">
+  <canvas class="fireworks" aria-hidden="true"></canvas>
+  <div class="sheet-body">
+    <p class="ms-head">celebrating<br>our milestones<span class="ms-dots">&hellip;</span></p>
+  </div>
+</section>
+
 <section class="screen solo" id="michael">
   <article class="panel p-michael person">
     <canvas class="wire wire--bed" data-wire="heart" data-color="#97434f"
@@ -824,6 +854,139 @@
 </section>
 
 <script src="wireframe.js?v=19"></script>
+<script>
+/* Fireworks behind "celebrating our milestones". Drawn the way the rest of
+   the site is drawn -- lines, no glow, no fill: a rocket is a short streak
+   climbing to its apex, a burst is a ring of streaks thrown out, pulled down
+   by gravity and fading. Runs only while the page is on screen, and not at
+   all for a reader who has asked for reduced motion. */
+(function () {
+  var sec = document.getElementById('milestones');
+  var cv = sec && sec.querySelector('.fireworks');
+  if (!cv || !cv.getContext) return;
+  if (window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var ctx = cv.getContext('2d');
+  /* the palette's six less the vanilla it sits on, plus the two inks cut
+     from it; blush is light on this field, so it is only ever a second
+     colour inside a burst, never a burst's lead */
+  var LEAD = ['#b46a72', '#97434f', '#4c5931', '#2d3a47', '#a8b58a', '#a9b7c6'];
+  var MIX  = LEAD.concat(['#f7c8d3']);
+  function pick(a) { return a[(Math.random() * a.length) | 0]; }
+  var w = 1, h = 1, rockets = [], sparks = [], next = 0, last = 0;
+  var visible = true, raf = 0;
+
+  function size() {
+    var r = cv.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    w = Math.max(1, r.width); h = Math.max(1, r.height);
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  /* Rockets go up from a few launch points -- the two bottom corners, low
+     on either side, and the floor either side of centre -- each thrown at
+     an angle in toward the middle. Gravity bends that into an arc, so a
+     rocket leans over as it slows and bursts at the top of its curve. */
+  var PADS = [
+    [0.02, 1.02,  1], [0.98, 1.02, -1],   // bottom corners
+    [-0.02, 0.78, 1], [1.02, 0.78, -1],   // low on the sides
+    [0.30, 1.02,  1], [0.70, 1.02, -1]    // the floor, either side of centre
+  ];
+  function launch() {
+    var g = h * 0.9;                                  // px/s^2
+    var pad = pick(PADS);
+    var x0 = w * pad[0], y0 = h * pad[1];
+    var apex = h * (0.08 + 0.30 * Math.random());
+    var vy = -Math.sqrt(2 * g * Math.max(h * 0.2, y0 - apex));
+    var rise = -vy / g;                               // seconds to the top
+    /* how far in toward the middle it travels on the way up */
+    var reach = w * (0.10 + 0.28 * Math.random()) * (pad[2] || 1);
+    if (pad[0] > 0.2 && pad[0] < 0.8) reach *= 0.5;
+    var c1 = pick(LEAD), c2 = Math.random() < 0.6 ? pick(MIX) : c1;
+    rockets.push({ x: x0, y: y0, vx: reach / rise, vy: vy, g: g,
+                   col: c1, col2: c2 });
+  }
+
+  function burst(r) {
+    var n = 40 + ((Math.random() * 24) | 0);
+    var R = Math.min(w, h) * (0.32 + 0.16 * Math.random());   // px/s
+    for (var i = 0; i < n; i++) {
+      var a = Math.PI * 2 * i / n + Math.random() * 0.12;
+      var v = R * (0.75 + 0.25 * Math.random());
+      sparks.push({ x: r.x, y: r.y, px: r.x, py: r.y,
+                    vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+                    life: 1, fade: 0.55 + 0.25 * Math.random(),
+                    col: i % 2 ? r.col2 : r.col });
+    }
+  }
+
+  function step(now) {
+    raf = 0;
+    if (!visible) return;
+    var dt = Math.min(0.05, (now - (last || now)) / 1000);
+    last = now;
+    if (now > next) {
+      launch();
+      if (Math.random() < 0.3) launch();
+      next = now + 550 + Math.random() * 900;
+    }
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.lineCap = 'round';
+    var i, r, p;
+
+    for (i = rockets.length - 1; i >= 0; i--) {
+      r = rockets[i];
+      r.x += r.vx * dt; r.y += r.vy * dt; r.vy += r.g * dt;
+      ctx.strokeStyle = r.col; ctx.globalAlpha = 0.7; ctx.lineWidth = 1.4;
+      /* the tail traces the arc it has just flown: the same path run back
+         a fraction of a second, so it bends with the curve */
+      ctx.beginPath();
+      for (var k = 6; k >= 0; k--) {
+        var d = 0.022 * k;
+        var tx = r.x - r.vx * d, ty = r.y - r.vy * d + 0.5 * r.g * d * d;
+        if (k === 6) ctx.moveTo(tx, ty); else ctx.lineTo(tx, ty);
+      }
+      ctx.stroke();
+      if (r.vy >= 0) { burst(r); rockets.splice(i, 1); }
+    }
+
+    var drag = Math.pow(0.35, dt);                    // air slows the spray
+    for (i = sparks.length - 1; i >= 0; i--) {
+      p = sparks[i];
+      p.px = p.x; p.py = p.y;
+      p.vx *= drag; p.vy = p.vy * drag + h * 0.22 * dt;
+      p.x += p.vx * dt; p.y += p.vy * dt;
+      p.life -= dt * p.fade;
+      if (p.life <= 0) { sparks.splice(i, 1); continue; }
+      /* a streak, not a dot: from a little behind to here */
+      ctx.strokeStyle = p.col;
+      ctx.globalAlpha = Math.min(1, p.life * 1.1) * 0.8;
+      ctx.lineWidth = 0.6 + 0.9 * p.life;
+      ctx.beginPath();
+      ctx.moveTo(p.x - p.vx * 0.09, p.y - p.vy * 0.09);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    raf = requestAnimationFrame(step);
+  }
+
+  function go() { if (!raf && visible) { last = 0; raf = requestAnimationFrame(step); } }
+
+  size();
+  window.addEventListener('resize', size);
+  if (window.IntersectionObserver) {
+    new IntersectionObserver(function (es) {
+      visible = es[0].isIntersecting;
+      if (visible) go();
+    }).observe(sec);
+  }
+  go();
+})();
+</script>
 <script>
 /* ---- the envelope ------------------------------------------------------
    The envelope settles -> the flap falls back -> a blank card rises out of
