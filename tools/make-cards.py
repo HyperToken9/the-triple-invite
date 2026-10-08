@@ -128,6 +128,45 @@ def fit(d, text, path, target, tr=0.0, cap=400):
 
 
 
+QUOTE = ('\u201cGratitude unlocks the fullness of life.',
+         'It turns what we have into enough, and more.\u201d')
+QUIET = (70, 80, 92)          # the lagoon knocked back, as on the page
+
+def slanted(text, font, fill, k=0.2):
+    """One line of Bodoni, sheared to an oblique -- the face ships no italic,
+    so this is the same synthesis the browser does on the site."""
+    tmp = ImageDraw.Draw(Image.new('L', (1, 1)))
+    l, t, r, b = tmp.textbbox((0, 0), text, font=font)
+    h = int(font.size * 1.4); pad = int(k * h) + 4
+    lay = Image.new('RGBA', (int(r) + pad + 4, h), (0, 0, 0, 0))
+    ImageDraw.Draw(lay).text((pad, 0), text, font=font, fill=fill + (255,))
+    return lay.transform(lay.size, Image.AFFINE, (1, k, -k * h, 0, 1, 0),
+                         resample=Image.BICUBIC), pad
+
+def epigraph(im, x, y, px, align='center', cap_px=None):
+    """The quote over a short rule and the source in micro caps. Returns
+    the y it ends at. `x` is the centre, or the left edge for align='left'."""
+    f = ImageFont.truetype(BODONI4, px)
+    for line in QUOTE:
+        lay, pad = slanted(line, f, QUIET)
+        lx = x - pad if align == 'left' else int(x - (lay.width - pad) / 2) - pad // 2
+        im.paste(lay, (int(lx), int(y)), lay)
+        y += int(px * 1.24)
+    cap_px = cap_px or max(11, int(px * 0.42))
+    fc = ImageFont.truetype(ARCHIVO5, cap_px)
+    d = ImageDraw.Draw(im)
+    cap = 'MELODY BEATTIE'; tr = cap_px * 0.24; rule = cap_px * 2.6; gap = cap_px * 0.9
+    tw = sum(d.textlength(c, font=fc) for c in cap) + tr * (len(cap) - 1)
+    total = rule + gap + tw
+    cx0 = x if align == 'left' else x - total / 2
+    y += int(px * 0.42)
+    ly = y + cap_px * 0.6
+    d.line([(cx0, ly), (cx0 + rule, ly)], fill=(150, 156, 162), width=max(1, cap_px // 10))
+    tx = cx0 + rule + gap
+    for c in cap:
+        d.text((tx, y), c, font=fc, fill=(130, 138, 146)); tx += d.textlength(c, font=fc) + tr
+    return y + cap_px
+
 THREE = (('MICHAEL', '80th Birthday'),
          ('SAVIO', '50th Birthday'),
          ('ORWILL & JOVITA', 'Silver Anniversary'))
@@ -191,8 +230,11 @@ def card(W, H, env_w, layout, path, jpeg=False):
     m = layout['margin']
     inner = W - 2*m
 
+    epigraph(im, cx, layout['quote_y'], layout['quote'])
+    d = ImageDraw.Draw(im)
+
     f_eye = ImageFont.truetype(ARCHIVO, layout['eyebrow'])
-    track(d, cx, layout['eyebrow_y'], 'YOU ARE INVITED TO', f_eye, ROSE, layout['eyebrow']*0.30)
+    track(d, cx, layout['eyebrow_y'], 'YOU ARE INVITED TO A', f_eye, ROSE, layout['eyebrow']*0.30)
 
     y = layout['head_y']
     for line in ('THANKSGIVING MASS', '& DINNER'):
@@ -204,15 +246,6 @@ def card(W, H, env_w, layout, path, jpeg=False):
     y = layout['foot_y']
     f_w = ImageFont.truetype(ARCHIVO, layout['when'])
     track(d, cx, y, 'TUESDAY 17 NOVEMBER 2026', f_w, LAGOON, layout['when']*0.24)
-    y += int(layout['when']*2.0)
-    f_p = ImageFont.truetype(ARCHIVO5, layout['where'])
-    track(d, cx, y, 'DON BOSCO SHRINE, MATUNGA  ·  SOFITEL HOTEL, BKC', f_p, (120,130,140), layout['where']*0.22)
-
-    # the three reasons, so the occasion is never in doubt
-    y = layout['who_y']
-    d.line([(cx-layout['rule'], y), (cx+layout['rule'], y)], fill=(222,208,186), width=2)
-    trio(d, cx-layout['rule'], cx+layout['rule'], int(y + layout['who']*1.8),
-         layout['who'], layout['occ'])
 
     # the same grain the page wears
     g = np.tile(np.asarray(_grain, np.float32),
@@ -226,21 +259,22 @@ def card(W, H, env_w, layout, path, jpeg=False):
 
 OUT = os.path.join(D, 'assets')
 
+
 # 4:5 -- the tallest a photo may be before WhatsApp crops it in the bubble,
 # so it is the biggest the card can ever render in a chat.
-print(card(1080, 1350, 620, dict(margin=96, env_y=214, eyebrow=30, eyebrow_y=126,
-      head=104, head_y=760, head_lead=1.06, foot_y=1010, when=27, where=23,
-      who_y=1150, who=21, occ=26, rule=330), os.path.join(OUT,'share-chat.jpg'), jpeg=True))
+print(card(1080, 1350, 600, dict(margin=96, quote_y=140, quote=34,
+      env_y=390, eyebrow=28, eyebrow_y=318,
+      head=98, head_y=904, head_lead=1.06, foot_y=1156, when=26), os.path.join(OUT,'share-chat.jpg'), jpeg=True))
 
 # 1:1 -- never cropped anywhere: chat, profile, a forwarded post
-print(card(1080, 1080, 466, dict(margin=96, env_y=150, eyebrow=27, eyebrow_y=90,
-      head=84, head_y=566, head_lead=1.06, foot_y=806, when=25, where=21,
-      who_y=922,  who=19, occ=24, rule=318), os.path.join(OUT,'share-square.jpg'), jpeg=True))
+print(card(1080, 1080, 460, dict(margin=96, quote_y=96, quote=28,
+      env_y=286, eyebrow=24, eyebrow_y=228,
+      head=82, head_y=682, head_lead=1.06, foot_y=910, when=24), os.path.join(OUT,'share-square.jpg'), jpeg=True))
 
 # 9:16 -- Status
-print(card(1080, 1920, 640, dict(margin=110, env_y=372, eyebrow=32, eyebrow_y=250,
-      head=110, head_y=960, head_lead=1.06, foot_y=1240, when=29, where=25,
-      who_y=1372, who=22, occ=28, rule=360), os.path.join(OUT,'share-status.jpg'), jpeg=True))
+print(card(1080, 1920, 660, dict(margin=110, quote_y=340, quote=40,
+      env_y=620, eyebrow=30, eyebrow_y=540,
+      head=110, head_y=1190, head_lead=1.06, foot_y=1470, when=29), os.path.join(OUT,'share-status.jpg'), jpeg=True))
 
 
 # ------------------------------------------------- the link preview, 1.91:1
@@ -250,7 +284,7 @@ def wide(path):
     im = Image.new('RGB', (W, H), VANILLA)
     env_w = 330
     env = envelope(env_w)
-    ex, ey = 96, (H - env.height)//2 + 26
+    ex, ey = 96, (H - env.height)//2 + 10
     sh = Image.new('RGBA', (W, H), (0,0,0,0))
     sh.paste((74,56,36,78), (ex+10, ey+18, ex+env_w-10, ey+env.height+14))
     sh = sh.filter(ImageFilter.GaussianBlur(env_w*0.04))
@@ -266,9 +300,12 @@ def wide(path):
             cx += d.textlength(c, font=font) + tr
 
     f_eye = ImageFont.truetype(ARCHIVO, 23)
-    ltrack(150, 'YOU ARE INVITED TO', f_eye, ROSE, 23*0.30)
+    # the quote heads the column, as it heads the page
+    epigraph(im, x, 112, 22, align='left', cap_px=11)
+    d = ImageDraw.Draw(im)
+    ltrack(236, 'YOU ARE INVITED TO A', f_eye, ROSE, 23*0.30)
 
-    y = 198
+    y = 284
     for line in ('THANKSGIVING MASS', '& DINNER'):
         size = min(62, fit(d, line, BODONI, inner))
         f = ImageFont.truetype(BODONI if line[0] != '&' else BODONI4, size)
@@ -276,13 +313,7 @@ def wide(path):
         y += int(size*1.08)
 
     f_w = ImageFont.truetype(ARCHIVO, 24)
-    ltrack(378, 'TUESDAY 17 NOVEMBER 2026', f_w, LAGOON, 24*0.24)
-    f_p = ImageFont.truetype(ARCHIVO5, 18)   # two venues, one per line
-    ltrack(418, 'MASS  ·  DON BOSCO SHRINE, MATUNGA', f_p, (120,130,140), 18*0.22)
-    ltrack(446, 'DINNER  ·  SOFITEL HOTEL, BKC', f_p, (120,130,140), 18*0.22)
-
-    d.line([(x, 480), (right, 480)], fill=(222,208,186), width=2)
-    trio(d, x, right, 512, 18, 21)
+    ltrack(464, 'TUESDAY 17 NOVEMBER 2026', f_w, LAGOON, 24*0.24)
 
     g = np.tile(np.asarray(_grain, np.float32),
                 (H//_grain.height+1, W//_grain.width+1))[:H, :W]
