@@ -27,8 +27,8 @@ lands at `/`. If a deploy ever comes back 404, check
 `og:image`:
 
 ```html
-<meta property="og:url"   content="https://the-triple-invite.vercel.app/">
-<meta property="og:image" content="https://the-triple-invite.vercel.app/assets/preview.jpg">
+<meta property="og:url"   content="https://the-invite-three.vercel.app/">
+<meta property="og:image" content="https://the-invite-three.vercel.app/assets/preview.jpg">
 ```
 
 WhatsApp fetches the link preview from its own servers, so these have to be
